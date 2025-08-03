@@ -14,6 +14,8 @@ import tempfile
 import mimetypes
 import uuid
 import hashlib
+import socket
+from contextlib import closing
 
 app = Flask(__name__)
 
@@ -40,6 +42,17 @@ SUPPORTED_IMAGE_TYPES = ['.jpg', '.jpeg', '.png', '.bmp', '.gif']
 
 # 存储对话历史和状态
 conversations = {}
+
+def find_free_port(start_port=5000, end_port=5050):
+    """在指定范围内查找可用端口"""
+    for port in range(start_port, end_port + 1):
+        with closing(socket.socket(socket.AF_INET, socket.SOCK_STREAM)) as sock:
+            try:
+                sock.bind(('localhost', port))
+                return port
+            except OSError:
+                continue
+    return None  # 如果没有找到可用端口
 
 def get_conversation(session_id):
     """获取或创建对话历史"""
@@ -75,11 +88,6 @@ def generate_file_context(files):
         content_preview = file_info['content'][:1000] + ('...' if len(file_info['content']) > 1000 else '')
         context.append(f"文件{file_info['short_id']} ({file_info['filename']}):\n{content_preview}")
     return "\n\n".join(context)
-
-@app.route('/')
-def home():
-    """主页面路由"""
-    return render_template('index.html')
 
 def parse_document(file_path, original_filename):
     """解析文档为Markdown文本"""
@@ -182,7 +190,11 @@ def image_ocr(image_data, original_filename):
         logging.error(f"图片识别过程中出错: {str(e)}")
         return {"error": f"图片识别过程中出错: {str(e)}"}
 
-# 文件上传路由
+@app.route('/')
+def home():
+    """主页面路由"""
+    return render_template('index.html')
+
 @app.route('/upload', methods=['POST'])
 def handle_upload():
     session_id = request.form.get('session_id', 'default')
@@ -195,6 +207,39 @@ def handle_upload():
     if file.filename == '':
         return jsonify({'status': 'error', 'message': '未选择文件'}), 400
     
+    return process_file(file, session_id, file_type)
+
+@app.route('/upload-multi', methods=['POST'])
+def handle_multi_upload():
+    session_id = request.form.get('session_id', 'default')
+    
+    if 'files[]' not in request.files:
+        return jsonify({'status': 'error', 'message': '未选择文件'}), 400
+    
+    files = request.files.getlist('files[]')
+    if not files:
+        return jsonify({'status': 'error', 'message': '未选择文件'}), 400
+    
+    results = []
+    for file in files:
+        if file.filename == '':
+            continue
+            
+        # 自动判断文件类型
+        ext = os.path.splitext(file.filename)[1].lower()
+        file_type = 'document' if ext in SUPPORTED_DOC_TYPES else 'image'
+        
+        result = process_file(file, session_id, file_type)
+        results.append(json.loads(result.data))
+    
+    return jsonify({
+        'status': 'success',
+        'message': f'成功处理 {len(results)} 个文件',
+        'files': results
+    })
+
+def process_file(file, session_id, file_type):
+    """处理单个文件并返回结果"""
     # 获取文件扩展名
     ext = os.path.splitext(file.filename)[1].lower()
     original_filename = file.filename
@@ -249,18 +294,30 @@ def handle_upload():
         file_id = hashlib.md5(f"{session_id}{original_filename}{time.time()}".encode()).hexdigest()[:12]
         short_id = len(conversation['files']) + 1
         
+        # 创建内容预览
+        content = result.get('content', result.get('text', ''))
+        content_preview = content[:500] + ('...' if len(content) > 500 else '')
+        
         # 添加文件到对话上下文
         file_info = {
             "type": file_type,
             "filename": original_filename,
-            "content": result.get('content', result.get('text', '')),
+            "content": content,
+            "content_preview": content_preview,
             "file_id": file_id,
             "short_id": short_id,
             "display_id": f"文件{short_id}",
-            "upload_time": time.time()
+            "upload_time": time.time(),
+            "preview_html": generate_file_preview_html({
+                "type": file_type,
+                "filename": original_filename,
+                "content_preview": content_preview,
+                "display_id": f"文件{short_id}"
+            })
         }
         
         conversation['files'][file_id] = file_info
+        conversation['lastActive'] = time.time()
         
         # 添加到会话历史
         conversation['messages'].append({
@@ -276,10 +333,11 @@ def handle_upload():
             'filename': original_filename,
             'message': f"{'文档' if file_type == 'document' else '图片'}解析成功！",
             'file_type': file_type,
-            'content': file_info['content'],
+            'content_preview': content_preview,
             'file_id': file_id,
             'short_id': short_id,
-            'display_id': file_info['display_id']
+            'display_id': file_info['display_id'],
+            'preview_html': file_info['preview_html']
         })
         
     except Exception as e:
@@ -297,6 +355,34 @@ def handle_upload():
             except Exception as e:
                 logging.warning(f"删除临时文件失败: {str(e)}")
 
+@app.route('/remove-file/<file_id>', methods=['DELETE'])
+def remove_file(file_id):
+    """从会话中移除文件"""
+    session_id = request.args.get('session_id', 'default')
+    conversation = get_conversation(session_id)
+    
+    if file_id in conversation['files']:
+        # 记录移除操作
+        file_info = conversation['files'][file_id]
+        conversation['messages'].append({
+            "role": "system",
+            "content": f"用户移除了文件: {file_info['filename']} (ID: {file_info['display_id']})"
+        })
+        
+        # 从会话中移除文件
+        del conversation['files'][file_id]
+        conversation['lastActive'] = time.time()
+        
+        return jsonify({
+            'status': 'success',
+            'message': f"文件 {file_info['display_id']} 已移除"
+        })
+    
+    return jsonify({
+        'status': 'error',
+        'message': '文件不存在'
+    }), 404
+
 @app.route('/chat', methods=['POST'])
 def chat():
     """处理聊天请求（逐字流式响应）"""
@@ -309,6 +395,7 @@ def chat():
     
     # 获取对话上下文
     conversation = get_conversation(session_id)
+    conversation['lastActive'] = time.time()
     
     # 准备聊天消息
     chat_messages = []
@@ -344,7 +431,7 @@ def chat():
             if msg.get('is_file', False):
                 chat_messages.append({
                     "role": "user",
-                    "content": f"[文件消息] {msg['file_info']['display_id']}: {msg['file_info']['content'][:200]}..."
+                    "content": f"[文件消息] {msg['file_info']['display_id']}: {msg['file_info']['content_preview']}"
                 })
             else:
                 chat_messages.append({
@@ -358,6 +445,11 @@ def chat():
         "content": user_input
     })
     
+    # 更新会话标题
+    if conversation['title'] == '新会话':
+        # 从用户输入中提取合适的前30个字符作为标题
+        conversation['title'] = user_input[:30] + ('...' if len(user_input) > 30 else '')
+    
     # 调试日志
     logging.info("发送给AI的消息:")
     for msg in chat_messages:
@@ -369,6 +461,8 @@ def chat():
             model="DeepSeek-V3-Fast",
             messages=chat_messages,
             stream=True,
+            temperature=0.7,
+            max_tokens=2000,
             timeout=30
         )
         
@@ -383,7 +477,7 @@ def chat():
                     # 逐字发送
                     for char in content:
                         # 添加轻微延迟以模拟打字机效果
-                        time.sleep(0.01)
+                        time.sleep(0.005)
                         yield f"data: {json.dumps({'char': char})}\n\n"
             
             # 整个流式响应完成后，将完整的助手回复添加到消息历史中
@@ -404,12 +498,133 @@ def chat():
             'detail': '可能原因：API 密钥错误、网络问题或服务器不可用。'
         }), 500
 
-def start_browser():
+@app.route('/conversations', methods=['GET'])
+def get_conversations():
+    """获取所有会话列表"""
+    return jsonify({
+        'status': 'success',
+        'conversations': [
+            {
+                'id': conv['id'],
+                'title': conv['title'],
+                'createdAt': conv['created极'],
+                'lastActive': conv.get('lastActive', conv['createdAt']),
+                'starred': conv.get('starred', False),
+                'file_count': len(conv.get('files', {}))
+            }
+            for conv in conversations.values()
+        ]
+    })
+
+@app.route('/conversation/<session_id>', methods=['GET'])
+def get_conversation_details(session_id):
+    """获取特定会话详情"""
+    conversation = get_conversation(session_id)
+    
+    # 构建响应
+    response = {
+        'id': conversation['id'],
+        'title': conversation['title'],
+        'createdAt': conversation['createdAt'],
+        'lastActive': conversation.get('lastActive', conversation['createdAt']),
+        'starred': conversation.get('starred', False),
+        'files': [
+            {
+                'file_id': file_info['file_id'],
+                'filename': file_info['filename'],
+                'type': file_info['type'],
+                'display_id': file_info['display_id'],
+                'short_id': file_info['short_id'],
+                'upload_time': file_info['upload_time'],
+                'preview_html': file_info['preview_html']
+            }
+            for file_info in conversation['files'].values()
+        ],
+        'messages': [
+            {
+                'role': msg['role'],
+                'content': msg['content'],
+                'is_file': msg.get('is_file', False),
+                'timestamp': msg.get('timestamp', time.time())
+            }
+            for msg in conversation['messages']
+            if msg['role'] != 'system'  # 排除系统消息
+        ]
+    }
+    
+    return jsonify(response)
+
+@app.route('/conversation/<session_id>', methods=['DELETE'])
+def delete_conversation(session_id):
+    """删除会话"""
+    if session_id in conversations:
+        del conversations[session_id]
+        return jsonify({'status': 'success', 'message': '会话已删除'})
+    return jsonify({'status': 'error', 'message': '会话不存在'}), 404
+
+@app.route('/star/<session_id>', methods=['POST'])
+def star_conversation(session_id):
+    """标记/取消标记会话为收藏"""
+    if session_id in conversations:
+        conversations[session_id]['starred'] = not conversations[session_id].get('starred', False)
+        return jsonify({
+            'status': 'success',
+            'starred': conversations[session_id]['starred']
+        })
+    return jsonify({'status': 'error', 'message': '会话不存在'}), 404
+
+@app.route('/file/<file_id>', methods=['GET'])
+def get_file_content(file_id):
+    """获取文件完整内容"""
+    session_id = request.args.get('session_id', 'default')
+    conversation = get_conversation(session_id)
+    
+    if file_id in conversation['files']:
+        file_info = conversation['files'][file_id]
+        return jsonify({
+            'status': 'success',
+            'filename': file_info['filename'],
+            'content': file_info['content'],
+            'display_id': file_info['display_id']
+        })
+    
+    return jsonify({'status': 'error', 'message': '文件不存在'}), 404
+
+def generate_file_preview_html(file_info):
+    """生成文件预览的HTML代码"""
+    filename_without_ext = os.path.splitext(file_info['filename'])[0]
+    
+    return f"""
+    <div class="file-preview">
+        <div class="file-info">
+            <i class="fas {'fa-file-alt' if file_info['type'] == 'document' else 'fa-image'}"></i>
+            {filename_without_ext} ({'文档' if file_info['type'] == 'document' else '图片'})
+            <span class="file-context-tag">ID: <span class="file-id-highlight">{file_info['display_id']}</span></span>
+        </div>
+        <div class="preview-content">
+            {file_info['content_preview']}
+        </div>
+        <div class="file-reference">
+            在问题中使用 <span class="file-reference-tag">{file_info['display_id']}</span> 引用此文件
+        </div>
+    </div>
+    """
+
+def start_browser(port):
     """启动浏览器打开页面"""
-    webbrowser.open('http://127.0.0.1:5000')
+    webbrowser.open(f'http://127.0.0.1:{port}')
 
 if __name__ == '__main__':
+    # 自动寻找可用端口
+    port = find_free_port(5000, 5050)
+    if port is None:
+        port = 5000
+        print("⚠️ 未找到可用端口，尝试使用5000端口")
+    
+    print(f"🚀 服务器将在端口 {port} 启动")
+    
     # 在独立线程中打开浏览器
-    threading.Thread(target=start_browser).start()
+    threading.Thread(target=start_browser, args=(port,)).start()
+    
     # 启动Flask应用
-    app.run(debug=False, port=5000)
+    app.run(debug=False, port=port)
