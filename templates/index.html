@@ -65,7 +65,7 @@
             color: white;
             border: none;
             border-radius: 8px;
-            cursor: pointer;
+            cursor: button;
             font-size: 1rem;
             transition: background 0.2s;
             width: 100%;
@@ -458,6 +458,134 @@
             color: #3a3a3c;
         }
 
+        .file-hints {
+            font-size: 0.7rem;
+            color: #8e8e93;
+            margin-right: 8px;
+            text-align: center;
+            line-height: 1.3;
+        }
+
+        .file-hint {
+            margin: 2px 0;
+        }
+
+        /* 文件上传按钮样式 */
+        .file-upload-group {
+            display: flex;
+            gap: 8px;
+            margin-right: 8px;
+        }
+
+        .file-hint-tooltip {
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-size: 0.7rem;
+            white-space: nowrap;
+            z-index: 100;
+        }   
+
+        .file-upload-btn {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .file-upload-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .file-upload-btn i {
+            font-size: 18px;
+        }
+
+        /* 新增文件预览样式 */
+        .file-preview {
+            margin-top: 10px;
+            padding: 12px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            border-left: 3px solid var(--user-bubble);
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        
+        .file-preview img {
+            max-width: 100%;
+            max-height: 250px;
+            border-radius: 6px;
+            margin-top: 8px;
+        }
+        
+        .file-preview pre {
+            white-space: pre-wrap;
+            background: rgba(0, 0, 0, 0.2);
+            padding: 10px;
+            border-radius: 6px;
+            font-size: 14px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        
+        .file-info {
+            display: flex;
+            align-items: center;
+            font-size: 14px;
+            color: #aaa;
+            margin-bottom: 8px;
+        }
+        
+        .file-info i {
+            margin-right: 6px;
+            font-size: 16px;
+        }
+
+        .file-context-tag {
+            background-color: rgba(36, 139, 245, 0.2);
+            border-radius: 4px;
+            padding: 4px 8px;
+            font-size: 12px;
+            margin-left: 8px;
+        }
+
+        .file-reference-tag {
+            background-color: rgba(46, 204, 113, 0.2);
+            border-radius: 4px;
+            padding: 2px 6px;
+            font-size: 12px;
+            margin: 0 4px;
+            cursor: pointer;
+        }
+
+        .file-id-highlight {
+            background-color: rgba(255, 193, 7, 0.3);
+            padding: 2px 4px;
+            border-radius: 4px;
+        }
+
+        .file-upload-indicator {
+            position: absolute;
+            top: -40px;
+            left: 0;
+            background: var(--user-bubble);
+            color: white;
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-size: 12px;
+        }
+
         /* 响应式调整 */
         @media (max-width: 768px) {
             .sidebar {
@@ -525,11 +653,30 @@
         </div>
 
         <div class="input-area">
+            <div class="file-upload-indicator" id="file-upload-indicator" style="display: none;">
+                <i class="fas fa-spinner fa-spin"></i> 文件处理中...
+            </div>
             <div class="typing-indicator" id="typing-indicator">
                 <span class="dot"></span>
                 <span class="dot"></span>
                 <span class="dot"></span>
             </div>
+
+            <!-- 文件上传按钮组 -->
+            <div class="file-upload-group">
+                <label for="file-upload-doc" class="file-upload-btn" title="上传文档">
+                    <i class="fas fa-file-alt"></i>
+                    <input type="file" id="file-upload-doc" accept=".pdf,.docx,.doc,.xlsx,.xls,.txt,.pptx" style="display:none">
+                </label>
+            
+                <label for="file-upload-image" class="file-upload-btn" title="上传图片">
+                    <i class="fas fa-image"></i>
+                    <input type="file" id="file-upload-image" accept="image/*" style="display:none">
+                </label>
+            </div>
+
+            <!-- 文件类型提示 -->
+
 
             <input type="text" id="message-input" placeholder="输入消息..." autocomplete="off">
 
@@ -548,6 +695,8 @@
         const allConversations = document.getElementById('all-conversations');
         const newChatBtn = document.getElementById('new-chat-btn');
         const chatInfo = document.getElementById('chat-info');
+        const docUploadBtn = document.getElementById('file-upload-doc');
+        const imageUploadBtn = document.getElementById('file-upload-image');
 
         // 生成唯一会话ID
         let currentSessionId = 'session_' + Date.now();
@@ -565,6 +714,48 @@
 
         // 会话数据管理
         let conversations = {};
+
+        // 显示文件上传指示器
+        function showFileUploadIndicator() {
+            const indicator = document.getElementById('file-upload-indicator');
+            indicator.style.display = 'block';
+        }
+
+        // 隐藏文件上传指示器
+        function hideFileUploadIndicator() {
+            const indicator = document.getElementById('file-upload-indicator');
+            indicator.style.display = 'none';
+        }
+
+        function addFileUploadHints() {
+            // 文档按钮提示
+            const docBtn = document.querySelector('[for="file-upload-doc"]');
+            docBtn.addEventListener('mouseover', () => {
+                const hint = document.createElement('div');
+                hint.className = 'file-hint-tooltip';
+                hint.textContent = '支持文档: PDF, DOC, DOCX, XLS, XLSX, PPT, PPTX, TXT';
+                docBtn.appendChild(hint);
+            });
+
+            docBtn.addEventListener('mouseout', () => {
+                const tooltip = docBtn.querySelector('.file-hint-tooltip');
+                if (tooltip) tooltip.remove();
+            });
+
+            // 图片按钮提示
+            const imgBtn = document.querySelector('[for="file-upload-image"]');
+            imgBtn.addEventListener('mouseover', () => {
+                const hint = document.createElement('div');
+                hint.className = 'file-hint-tooltip';
+                hint.textContent = '支持图片: JPG, JPEG, PNG, BMP, GIF';
+                imgBtn.appendChild(hint);
+            });
+
+            imgBtn.addEventListener('mouseout', () => {
+                const tooltip = imgBtn.querySelector('.file-hint-tooltip');
+                if (tooltip) tooltip.remove();
+            });
+        }
 
         // 初始化会话历史
         function initConversations() {
@@ -584,6 +775,8 @@
                 // 创建初始会话
                 createNewConversation();
             }
+            // 添加文件上传提示
+            addFileUploadHints();
 
             renderChatArea();
         }
@@ -652,6 +845,7 @@
                 nonStarredItems.forEach(conversation => {
                     createConversationItem(conversation, allConversations);
                 });
+                极
             } else {
                 allConversations.innerHTML = `
                     <div class="empty-state">
@@ -664,7 +858,7 @@
 
         // 创建会话项
         function createConversationItem(conversation, container) {
-            const isActive = conversation.id === currentSessionId;
+            const isActive = conversation.id === currentSession极;
             const item = document.createElement('div');
             item.className = `conversation-item ${isActive ? 'active' : ''}`;
 
@@ -738,32 +932,40 @@
 
         // 渲染聊天区域
         function renderChatArea() {
-            const chatContainer = document.getElementById('chat-container');
-            chatContainer.innerHTML = '';
+                const chatContainer = document.getElementById('chat-container');
+                chatContainer.innerHTML = '';
 
-            const conversation = conversations[currentSessionId];
-            if (conversation) {
-                chatInfo.textContent = conversation.title;
+                const conversation = conversations[currentSessionId];
+                if (conversation) {
+                    chatInfo.textContent = conversation.title;
 
-                conversation.messages.forEach(msg => {
-                    if (msg.role === 'system') return;
+                    conversation.messages.forEach(msg => {
+                        if (msg.role === 'system') return;
 
-                    const messageElement = document.createElement('div');
-                    messageElement.className = `message ${msg.role}-message`;
+                        const messageElement = document.createElement('div');
+                        messageElement.className = `message ${msg.role}-message`;
 
-                    if (msg.role === 'assistant') {
-                        messageElement.innerHTML = marked.parse(msg.content);
-                    } else {
-                        messageElement.textContent = msg.content;
-                    }
+                        if (msg.isFile) {
+                            // 文件消息直接使用保存的HTML
+                            try {
+                                const fileData = JSON.parse(msg.content);
+                                messageElement.innerHTML = fileData.preview;
+                            } catch (e) {
+                                messageElement.textContent = "文件内容显示错误";
+                            }
+                        } else if (msg.role === 'assistant') {
+                            messageElement.innerHTML = marked.parse(msg.content);
+                        } else {
+                            messageElement.textContent = msg.content;
+                        }
 
-                    chatContainer.appendChild(messageElement);
-                });
+                        chatContainer.appendChild(messageElement);
+                    });
+                }
+
+                // 滚动到底部
+                chatContainer.scrollTop = chatContainer.scrollHeight;
             }
-
-            // 滚动到底部
-            chatContainer.scrollTop = chatContainer.scrollHeight;
-        }
 
         // 发送消息函数
         async function sendMessage() {
@@ -869,99 +1071,252 @@
                 if (error.name === 'AbortError') {
                     const errorElement = document.getElementById('assistant-typing');
                     if (errorElement) {
-                        errorElement.innerHTML = marked.parse('🚫 输出已停止');
+                        errorElement.innerHTML = marked.parse('🚫🚫 输出已停止');
                         errorElement.id = '';
-                        addToConversation('🚫 输出已停止', 'assistant');
+                        addToConversation('🚫🚫 输出已停止', 'assistant');
                     }
-                } else {
-                    console.error('请求错误:', error);
-                    const errorElement = document.getElementById('assistant-typing');
-                    if (errorElement) {
-                        errorElement.innerHTML = marked.parse(`⚠️ 请求失败: ${error.message}`);
-                        errorElement.id = '';
-                    } else {
-                        addMessageToChat(`⚠️ 请求失败: ${error.message}`, 'assistant');
+                                } else {
+                                    console.error('请求错误:', error);
+                                    const errorElement = document.getElementById('assistant-typing');
+                                    if (errorElement) {
+                                        errorElement.innerHTML = marked.parse(`⚠️ 请求失败: ${error.message}`);
+                                        errorElement.id = '';
+                                    } else {
+                                        addMessageToChat(`⚠️ 请求失败: ${error.message}`, 'assistant');
+                                    }
+                                }
+
+                                typingIndicator.style.display = 'none';
+                                isProcessing = false;
+                                sendBtn.disabled = false;
+                                cancelBtn.style.display = 'none';
+                            }
+                        }
+
+                        // 添加消息到聊天界面
+                        function addMessageToChat(message, sender) {
+                            const messageElement = document.createElement('div');
+                            messageElement.className = `message ${sender}-message`;
+
+                            if (sender === 'assistant') {
+                                messageElement.innerHTML = marked.parse(message);
+                            } else {
+                                messageElement.textContent = message;
+                            }
+
+                            chatContainer.appendChild(messageElement);
+                            // 滚动到底部
+                            chatContainer.scrollTop = chatContainer.scrollHeight;
+                        }
+
+                        // 添加消息到会话数据
+                function addToConversation(content, role) {
+                        const conversation = conversations[currentSessionId];
+                        if (!conversation) return;
+
+                        // 处理文件类型消息
+                        const isFileMessage = typeof content === 'object';
+                        const messageContent = isFileMessage ? JSON.stringify(content) : content;
+
+                        conversation.messages.push({
+                            role: role,
+                            content: messageContent,
+                            isFile: isFileMessage
+                        });
+
+                        // 更新会话标题（使用第一条用户消息）
+                        if (role === 'user' && conversation.title === '新会话') {
+                            conversation.title = isFileMessage ?
+                                content.filename :
+                                content.substring(0, 30) + (content.length > 30 ? '...' : '');
+                        }
+
+                        // 保存会话
+                        saveConversations();
+                        renderConversationsList();
                     }
-                }
 
-                typingIndicator.style.display = 'none';
-                isProcessing = false;
-                sendBtn.disabled = false;
-                cancelBtn.style.display = 'none';
-            }
-        }
+                        // 文件上传处理函数
+                    function handleFileUpload(event, type) {
+                            const file = event.target.files[0];
+                            if (!file) return;
 
-        // 添加消息到聊天界面
-        function addMessageToChat(message, sender) {
-            const messageElement = document.createElement('div');
-            messageElement.className = `message ${sender}-message`;
+                            // 显示处理中状态
+                            showFileUploadIndicator();
+                            const originalButtonText = sendBtn.innerHTML;
+                            sendBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 处理中...';
+                            sendBtn.disabled = true;
 
-            if (sender === 'assistant') {
-                messageElement.innerHTML = marked.parse(message);
-            } else {
-                messageElement.textContent = message;
-            }
+                            const formData = new FormData();
+                            formData.append('file', file);
+                            formData.append('type', type);
+                            formData.append('session_id', currentSessionId);
 
-            chatContainer.appendChild(messageElement);
-            // 滚动到底部
-            chatContainer.scrollTop = chatContainer.scrollHeight;
-        }
+                            fetch('/upload', {
+                                method: 'POST',
+                                body: formData
+                            })
+                                .then(response => response.json())
+                                .then(data => {
+                                    if (data.status === 'error') {
+                                        addMessageToChat(`文件处理失败: ${data.message}`, 'assistant');
+                                        return;
+                                    }
 
-        // 添加消息到会话数据
-        function addToConversation(content, role) {
-            if (!conversations[currentSessionId]) return;
+                                    // 创建文件预览消息
+                                    const fileMessage = document.createElement('div');
+                                    fileMessage.className = 'message user-message';
 
-            conversations[currentSessionId].messages.push({
-                role: role,
-                content: content
-            });
+                                    // 文件信息
+                                    const fileInfo = document.createElement('div');
+                                    fileInfo.className = 'file-info';
+                                    fileInfo.innerHTML = `
+                    <i class="fas ${type === 'document' ? 'fa-file-alt' : 'fa-image'}"></i>
+                    ${data.filename} (${type === 'document' ? '文档' : '图片'})
+                    <span class="file-context-tag">ID: <span class="file-id-highlight">${data.display_id}</span></span>
+                `;
 
-            // 更新会话标题（使用第一条用户消息）
-            if (role === 'user' && conversations[currentSessionId].title === '新会话') {
-                conversations[currentSessionId].title = content.substring(0, 30) + (content.length > 30 ? '...' : '');
-            }
+                                    // 文件预览区域
+                                    const preview = document.createElement('div');
+                                    preview.className = 'file-preview';
 
-            // 保存会话
-            saveConversations();
-            renderConversationsList();
-        }
+                                    if (type === 'document') {
+                                        // 文档内容显示
+                                        const content = document.createElement('pre');
+                                        content.textContent = data.content.substring(0, 1000) + (data.content.length > 1000 ? '...' : '');
+                                        preview.appendChild(content);
 
-        // 事件监听
-        sendBtn.addEventListener('click', sendMessage);
-        messageInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter' && !isProcessing) {
-                sendMessage();
-            }
-        });
+                                        // 添加查看完整内容按钮
+                                        if (data.content.length > 1000) {
+                                            const viewFullBtn = document.createElement('button');
+                                            viewFullBtn.textContent = '查看完整内容';
+                                            viewFullBtn.style.marginTop = '8px';
+                                            viewFullBtn.style.padding = '4px 8px';
+                                            viewFullBtn.style.background = 'var(--user-bubble)';
+                                            viewFullBtn.style.border = 'none';
+                                            viewFullBtn.style.borderRadius = '4px';
+                                            viewFullBtn.style.cursor = 'pointer';
 
-        cancelBtn.addEventListener('click', () => {
-            if (currentAbortController) {
-                currentAbortController.abort();
-            }
-            cancelBtn.style.display = 'none';
-            isProcessing = false;
-            sendBtn.disabled = false;
-            typingIndicator.style.display = 'none';
-        });
+                                            viewFullBtn.addEventListener('click', () => {
+                                                alert(data.content);
+                                            });
 
-        newChatBtn.addEventListener('click', createNewConversation);
+                                            preview.appendChild(viewFullBtn);
+                                        }
+                                    } else if (type === 'image') {
+                                        // 图片预览
+                                        const img = document.createElement('img');
+                                        img.src = URL.createObjectURL(file);
+                                        preview.appendChild(img);
 
-        // 初始化应用
-        window.addEventListener('load', () => {
-            // 配置Marked.js
-            marked.setOptions({
-                breaks: true,
-                gfm: true,
-                headerIds: false
-            });
+                                        // OCR识别结果
+                                        const content = document.createElement('pre');
+                                        content.textContent = data.content.substring(0, 1000) + (data.content.length > 1000 ? '...' : '');
+                                        content.style.marginTop = '8px';
+                                        preview.appendChild(content);
+                                    }
 
-            // 初始化会话
-            initConversations();
+                                    // 提示信息
+                                    const tip = document.createElement('div');
+                                    tip.className = 'file-context-tag';
+                                    tip.style.marginTop = '8px';
+                                    tip.textContent = `在问题中使用"${data.display_id}"引用此文件`;
 
-            // 聚焦输入框
-            messageInput.focus();
-        });
-    </script>
-</body>
+                                    // 引用按钮
+                                    const refButton = document.createElement('button');
+                                    refButton.innerHTML = `<span class="file-reference-tag">${data.display_id}</span>`;
+                                    refButton.style.background = 'none';
+                                    refButton.style.border = 'none';
+                                    refButton.style.padding = '0';
+                                    refButton.style.marginTop = '8px';
+                                    refButton.style.cursor = 'pointer';
 
-</html>
+                                    refButton.addEventListener('click', () => {
+                                        const currentInput = messageInput.value;
+                                        messageInput.value = currentInput ?
+                                            `${currentInput} ${data.display_id}` :
+                                            `请分析${data.display_id}的内容`;
+                                        messageInput.focus();
+                                    });
+
+                                    // 组装消息
+                                    fileMessage.appendChild(fileInfo);
+                                    fileMessage.appendChild(preview);
+                                    fileMessage.appendChild(tip);
+                                    fileMessage.appendChild(refButton);
+                                    chatContainer.appendChild(fileMessage);
+
+                                    // 添加到会话历史
+                                    addToConversation({
+                                        type: type,
+                                        filename: data.filename,
+                                        content: data.content,
+                                        file_id: data.file_id,
+                                        short_id: data.short_id,
+                                        display_id: data.display_id,
+                                        preview: fileMessage.innerHTML
+                                    }, 'user');
+
+                                    // 自动建议问题
+                                    messageInput.placeholder = `请分析 ${data.display_id} 的内容`;
+
+                                    // 滚动到底部
+                                    chatContainer.scrollTop = chatContainer.scrollHeight;
+                                })
+                                .catch(error => {
+                                    addMessageToChat(`文件上传失败: ${error.message}`, 'assistant');
+                                })
+                                .finally(() => {
+                                    sendBtn.innerHTML = originalButtonText;
+                                    sendBtn.disabled = false;
+                                    // 重置文件输入
+                                    event.target.value = '';
+                                    hideFileUploadIndicator();
+                                });
+                        }
+
+
+                        // 事件监听
+                        sendBtn.addEventListener('click', sendMessage);
+                        messageInput.addEventListener('keypress', (e) => {
+                            if (e.key === 'Enter' && !isProcessing) {
+                                sendMessage();
+                            }
+                        });
+
+                        cancelBtn.addEventListener('click', () => {
+                            if (currentAbortController) {
+                                currentAbortController.abort();
+                            }
+                            cancelBtn.style.display = 'none';
+                            isProcessing = false;
+                            sendBtn.disabled = false;
+                            typingIndicator.style.display = 'none';
+                        });
+
+                        newChatBtn.addEventListener('click', createNewConversation);
+
+                        // 文档上传事件
+                        docUploadBtn.addEventListener('change', (e) => handleFileUpload(e, 'document'));
+                        // 图片上传事件
+                        imageUploadBtn.addEventListener('change', (e) => handleFileUpload(e, 'image'));
+
+                        // 初始化应用
+                            window.addEventListener('load', () => {
+                                // 配置Marked.js
+                                marked.setOptions({
+                                    breaks: true,
+                                    gfm: true,
+                                    headerIds: false
+                                });
+
+                                // 初始化会话
+                                initConversations();
+
+                                // 聚焦输入框
+                                messageInput.focus();
+                            });
+                        </script>
+        </body>
+        
+        </html>
