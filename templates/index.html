@@ -184,6 +184,8 @@
         .header-title {
             font-size: 1.1rem;
             font-weight: 500;
+            text-align: center;
+            margin: 0 auto;
         }
 
         .chat-info {
@@ -701,8 +703,8 @@
     <!-- 主聊天区域 -->
     <div class="main-container">
         <div class="header">
-            <div class="header-title">智能助手</div>
-            <div class="chat-info" id="chat-info">新会话</div>
+            <div class="header-title">DeepSeek V3</div>
+            <div class="chat-info" id="chat-info"></div>
         </div>
 
         <div class="chat-container" id="chat-container">
@@ -796,7 +798,7 @@
             uploadBtn.addEventListener('mouseover', () => {
                 const hint = document.createElement('div');
                 hint.className = 'file-hint-tooltip';
-                hint.textContent = '支持文档: PDF, DOC, DOCX, XLS, XLSX, PPT, PPTX, TXT\n支持图片: JPG, JPEG, PNG, BMP, GIF';
+                // hint.textContent = '支持文档: PDF, DOC, DOCX, XLS, XLSX, PPT, PPTX, TXT\n支持图片: JPG, JPEG, PNG, BMP, GIF';
                 uploadBtn.appendChild(hint);
             });
 
