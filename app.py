@@ -1,4 +1,3 @@
-# api_key="0LWPHPYavI1N_a6D7kxRT9rQwIS4pWOpWCpm2H3C1cKBcA-d5uUYJzPv-Azu8bmRMOU68xj2_txAp0Zh1U5lcw"
 
 # app.py
 import os
