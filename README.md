@@ -1,4 +1,4 @@
-# SophNet Intelligent Assistant
+# Miniature AI Chat Agent
 
 A full-stack AI assistant application with file analysis capabilities, featuring a modern dark-themed UI and real-time chat functionality.
 
