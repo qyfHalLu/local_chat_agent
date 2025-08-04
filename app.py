@@ -43,6 +43,13 @@ SUPPORTED_IMAGE_TYPES = ['.jpg', '.jpeg', '.png', '.bmp', '.gif']
 # 存储对话历史和状态
 conversations = {}
 
+# 默认设置值
+DEFAULT_SETTINGS = {
+    "model": "DeepSeek-V3-Fast",
+    "system_prompt": "你是伏秋杨的智能助手，负责分析用户提供的文件和图片内容。",
+    "max_tokens": 1024
+}
+
 def find_free_port(start_port=5000, end_port=5050):
     """在指定范围内查找可用端口"""
     for port in range(start_port, end_port + 1):
@@ -62,9 +69,10 @@ def get_conversation(session_id):
             "id": session_id,
             "title": "新会话",
             "messages": [
-                {"role": "system", "content": "你是伏秋杨的智能助手，负责分析用户提供的文件和图片内容。"}
+                {"role": "system", "content": DEFAULT_SETTINGS["system_prompt"]}
             ],
             "files": {},  # 确保初始化为字典
+            "settings": DEFAULT_SETTINGS.copy(),  # 使用默认设置
             "createdAt": time.time(),
             "starred": False
         }
@@ -412,6 +420,14 @@ def chat():
     session_id = data.get('session_id', 'default')
     user_input = data['message'].strip()
     
+    # 获取设置参数（前端传递）
+    model = data.get('model', DEFAULT_SETTINGS["model"])
+    system_prompt = data.get('system_prompt', DEFAULT_SETTINGS["system_prompt"])
+    max_tokens = data.get('max_tokens', DEFAULT_SETTINGS["max_tokens"])
+    
+    # 验证max_tokens范围
+    max_tokens = max(256, min(int(max_tokens), 16384))
+    
     if not user_input:
         return jsonify({'error': '消息内容不能为空'}), 400
     
@@ -419,13 +435,20 @@ def chat():
     conversation = get_conversation(session_id)
     conversation['lastActive'] = time.time()
     
+    # 保存设置到会话
+    conversation['settings'] = {
+        "model": model,
+        "system_prompt": system_prompt,
+        "max_tokens": max_tokens
+    }
+    
     # 准备聊天消息
     chat_messages = []
     
-    # 添加系统提示
+    # 添加系统提示（使用用户设置）
     chat_messages.append({
         "role": "system",
-        "content": "你是伏秋杨的智能助手，负责分析用户提供的文件和图片内容。"
+        "content": system_prompt
     })
     
     # 添加文件上下文
@@ -473,18 +496,18 @@ def chat():
         conversation['title'] = user_input[:30] + ('...' if len(user_input) > 30 else '')
     
     # 调试日志
-    logging.info("发送给AI的消息:")
+    logging.info(f"发送给AI的消息 (模型: {model}, Max Tokens: {max_tokens}):")
     for msg in chat_messages:
         logging.info(f"{msg['role'].upper()}: {msg['content'][:200]}{'...' if len(msg['content']) > 200 else ''}")
     
     try:
         # 创建流式响应
         response = client.chat.completions.create(
-            model="DeepSeek-V3-Fast",
+            model=model,  # 使用用户选择的模型
             messages=chat_messages,
             stream=True,
             temperature=0.7,
-            max_tokens=2000,
+            max_tokens=max_tokens,  # 使用设置的最大长度
             timeout=30
         )
         
@@ -550,6 +573,7 @@ def get_conversation_details(session_id):
         'createdAt': conversation['createdAt'],
         'lastActive': conversation.get('lastActive', conversation['createdAt']),
         'starred': conversation.get('starred', False),
+        'settings': conversation.get('settings', DEFAULT_SETTINGS.copy()),
         'files': [
             {
                 'file_id': file_info['file_id'],
@@ -643,7 +667,7 @@ if __name__ == '__main__':
         port = 5000
         print("⚠️ 未找到可用端口，尝试使用5000端口")
     
-    print(f"🚀🚀 服务器将在端口 {port} 启动")
+    print(f"🚀🚀🚀🚀 服务器将在端口 {port} 启动")
     
     # 在独立线程中打开浏览器
     threading.Thread(target=start_browser, args=(port,)).start()

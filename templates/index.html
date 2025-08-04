@@ -23,10 +23,10 @@
             --assistant-bubble: #2d2d2d;
             --card-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
             --transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
-            --transition-slow: all 0.5s cubic-bezier(0.22, 0.61, 0.36, 1);
             --border-radius: 14px;
             --border-radius-sm: 8px;
             --font-family: 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            --icon-size: 1.2rem;
         }
 
         * {
@@ -46,7 +46,7 @@
             line-height: 1.6;
         }
 
-        /* 侧边栏样式 - 更简约 */
+        /* 侧边栏样式 */
         .sidebar {
             width: 260px;
             background: var(--surface);
@@ -56,11 +56,13 @@
             transition: var(--transition);
             z-index: 10;
             box-shadow: var(--card-shadow);
+            border-right: 1px solid var(--border);
         }
 
         .sidebar-header {
             padding: 18px 16px;
             text-align: center;
+            border-bottom: 1px solid var(--border);
         }
 
         .logo {
@@ -86,21 +88,34 @@
             background-clip: text;
         }
 
+        /* 按钮统一样式 */
+        button,
+        .action-btn,
+        .file-upload-btn,
+        .new-chat-btn,
+        #send-btn,
+        #cancel-btn {
+            border: none;
+            border-radius: var(--border-radius-sm);
+            padding: 12px 18px;
+            font-size: 15px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            box-shadow: var(--card-shadow);
+        }
+
         .new-chat-btn {
             padding: 14px;
             background: transparent;
             color: var(--primary);
             border: 1px solid var(--primary);
             border-radius: var(--border-radius-sm);
-            cursor: pointer;
-            font-size: 15px;
-            transition: var(--transition);
             width: 100%;
-            font-weight: 500;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
         }
 
         .new-chat-btn:hover {
@@ -108,19 +123,149 @@
             transform: translateY(-2px);
         }
 
-        .conversations-list {
-            flex: 1;
-            overflow-y: auto;
-            padding: 12px;
+        #send-btn {
+            background: var(--primary);
+            color: white;
+            padding: 15px 25px;
+            margin-left: 12px;
+        }
+
+        #send-btn:hover {
+            background: var(--primary-hover);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(58, 134, 255, 0.4);
+        }
+
+        .action-btn {
+            background: transparent;
+            color: var(--text-secondary);
+            width: 36px;
+            height: 36px;
+            padding: 0;
+        }
+
+        .action-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--text);
+        }
+
+        #cancel-btn {
+            background: var(--surface-elevated);
+            color: var(--text);
+            border: 1px solid var(--border);
+            padding: 15px 20px;
+        }
+
+        #cancel-btn:hover {
+            background: rgba(255, 32, 110, 0.15);
+            color: var(--accent);
+            border-color: var(--accent);
+        }
+
+        .file-upload-btn {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 50%;
+            width: 48px;
+            height: 48px;
             display: flex;
-            flex-direction: column;
-            gap: 6px;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            border: 1px solid var(--border);
+        }
+
+        .file-upload-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+
+        /* 设置区域样式 */
+        .settings-section {
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: var(--border-radius-sm);
+            margin: 15px;
+            border: 1px solid var(--border);
+        }
+
+        .setting-item {
+            margin-bottom: 20px;
+        }
+
+        .setting-item label {
+            display: block;
+            font-size: 13px;
+            margin-bottom: 8px;
+            color: var(--text-secondary);
+        }
+
+        /* 统一输入控件样式 */
+        .setting-item select,
+        .setting-item textarea,
+        .setting-item input[type="range"],
+        #message-input {
+            width: 100%;
+            padding: 14px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border);
+            border-radius: var(--border-radius-sm);
+            color: var(--text);
+            font-size: 15px;
+            outline: none;
+            transition: var(--transition);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .setting-item textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        #message-input:focus,
+        .setting-item select:focus,
+        .setting-item textarea:focus {
+            background: rgba(255, 255, 255, 0.08);
+            box-shadow: 0 0 0 2px var(--primary);
+        }
+
+        #message-input::placeholder {
+            color: var(--text-secondary);
+        }
+
+        .token-info {
+            display: flex;
+            align-items: center;
+            margin-top: 8px;
+            font-size: 13px;
+        }
+
+        .token-hint {
+            margin-left: auto;
+            color: var(--text-secondary);
+            font-size: 11px;
+        }
+
+        #token-value {
+            font-weight: bold;
+            color: var(--primary);
+            margin-right: 5px;
+        }
+
+        /* 会话列表样式 */
+        .conversations-list {
+            max-height: 40vh;
+            overflow-y: auto;
+            padding: 8px;
+            gap: 4px; /* 减少项间距 */
         }
 
         .conversation-item {
-            padding: 14px 16px;
+            padding: 10px 12px;
             border-radius: var(--border-radius-sm);
-            margin-bottom: 4px;
+            margin-bottom: 2px;
             cursor: pointer;
             transition: var(--transition);
             display: flex;
@@ -129,7 +274,7 @@
             position: relative;
             overflow: hidden;
             background: rgba(255, 255, 255, 0.02);
-            border: 1px solid transparent;
+            border: 1px solid var(--border);
         }
 
         .conversation-item::before {
@@ -147,7 +292,7 @@
 
         .conversation-item:hover {
             background: rgba(255, 255, 255, 0.05);
-            transform: translateY(-1px);
+            transform: translateY(-2px);
         }
 
         .conversation-item:hover::before {
@@ -186,26 +331,6 @@
             opacity: 1;
         }
 
-        .action-btn {
-            background: transparent;
-            border: none;
-            color: var(--text-secondary);
-            cursor: pointer;
-            font-size: 15px;
-            transition: var(--transition);
-            width: 30px;
-            height: 30px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .action-btn:hover {
-            background: rgba(255, 255, 255, 0.1);
-            color: var(--text);
-        }
-
         .star-btn.starred {
             color: var(--accent);
         }
@@ -218,15 +343,33 @@
             padding: 10px 0;
         }
 
+        /* 统一标题样式 */
         .section-title {
-            padding: 10px 16px;
-            font-size: 13px;
+            padding: 12px 16px;
+            font-size: 14px;
             color: var(--text-secondary);
             letter-spacing: 0.5px;
             text-transform: uppercase;
             display: flex;
             align-items: center;
             gap: 8px;
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 12px;
+        }
+
+        .section-title i {
+            font-size: var(--icon-size);
+            color: var(--text-secondary);
+        }
+
+        .header-title {
+            font-size: 20px;
+            font-weight: 500;
+            letter-spacing: 0.3px;
+            background: linear-gradient(to right, var(--primary), var(--accent));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
         }
 
         /* 主聊天区域样式 */
@@ -250,17 +393,6 @@
             justify-content: space-between;
             align-items: center;
             border-bottom: 1px solid var(--border);
-        }
-
-        .header-title {
-            font-size: 20px;
-            font-weight: 500;
-            margin: 0 auto;
-            letter-spacing: 0.3px;
-            background: linear-gradient(to right, var(--primary), var(--accent));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
         }
 
         .chat-info {
@@ -290,6 +422,7 @@
             z-index: 1;
         }
 
+        /* 消息样式 */
         .message {
             max-width: 85%;
             padding: 18px 22px;
@@ -300,6 +433,7 @@
             animation: fadeIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
             font-size: 16px;
             box-shadow: var(--card-shadow);
+            border: 1px solid var(--border);
             opacity: 0;
             transform: translateY(15px);
         }
@@ -362,6 +496,7 @@
             border-radius: 8px;
             overflow-x: auto;
             margin: 12px 0;
+            border: 1px solid var(--border);
         }
 
         .assistant-message pre code {
@@ -376,7 +511,7 @@
             color: var(--text-secondary);
         }
 
-        /* 文件管理区 - 更简约 */
+        /* 文件管理区 */
         .files-container {
             display: none;
             flex-wrap: wrap;
@@ -391,6 +526,7 @@
             transition: var(--transition);
             transform: translateY(5px);
             opacity: 0;
+            border: 1px solid var(--border);
         }
 
         .files-container.visible {
@@ -402,20 +538,20 @@
         .file-item {
             display: flex;
             align-items: center;
-            padding: 8px 14px;
+            padding: 10px 16px;
             background: rgba(255, 255, 255, 0.05);
             border-radius: 50px;
             font-size: 14px;
             cursor: pointer;
-            transition: var(--transition);
             position: relative;
             overflow: hidden;
             pointer-events: auto !important;
+            border: 1px solid var(--border);
         }
 
         .file-item * {
-    pointer-events: auto !important;
-}
+            pointer-events: auto !important;
+        }
 
         .file-item::after {
             content: '';
@@ -469,8 +605,8 @@
         .file-remove-btn {
             margin-left: 10px;
             cursor: pointer;
-            z-index: 100; /* 确保按钮在最上层 */
-            position: relative; /* 确保z-index生效 */
+            z-index: 100;
+            position: relative;
             color: var(--text-secondary);
             transition: var(--transition);
         }
@@ -482,58 +618,12 @@
 
         .input-area {
             display: flex;
-            padding: 18px 24px;
+            padding: 12px 24px;
             background: var(--surface);
             position: relative;
             align-items: center;
             border-top: 1px solid var(--border);
             z-index: 2;
-        }
-
-        #message-input {
-            flex: 1;
-            padding: 16px 20px;
-            border: none;
-            border-radius: var(--border-radius);
-            background: rgba(255, 255, 255, 0.05);
-            color: var(--text);
-            font-size: 16px;
-            outline: none;
-            transition: var(--transition);
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-            backdrop-filter: blur(10px);
-        }
-
-        #message-input:focus {
-            background: rgba(255, 255, 255, 0.08);
-            box-shadow: 0 0 0 2px var(--primary);
-        }
-
-        #message-input::placeholder {
-            color: var(--text-secondary);
-        }
-
-        #send-btn {
-            background: var(--primary);
-            color: white;
-            border: none;
-            border-radius: var(--border-radius);
-            padding: 15px 25px;
-            margin-left: 12px;
-            cursor: pointer;
-            font-weight: 500;
-            font-size: 16px;
-            transition: var(--transition);
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            box-shadow: 0 4px 15px rgba(58, 134, 255, 0.3);
-        }
-
-        #send-btn:hover {
-            background: var(--primary-hover);
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(58, 134, 255, 0.4);
         }
 
         .typing-indicator {
@@ -592,23 +682,7 @@
         }
 
         #cancel-btn {
-            background: var(--surface-elevated);
-            color: var(--text);
-            border: 1px solid var(--border);
-            border-radius: var(--border-radius);
-            padding: 15px 20px;
-            margin-left: 12px;
-            cursor: pointer;
-            font-weight: 500;
-            font-size: 16px;
-            transition: var(--transition);
             display: none;
-        }
-
-        #cancel-btn:hover {
-            background: rgba(255, 32, 110, 0.15);
-            color: var(--accent);
-            border-color: var(--accent);
         }
 
         .assistant-typing::after {
@@ -652,40 +726,7 @@
             opacity: 0.3;
         }
 
-        /* 文件上传按钮组 */
-        .file-upload-group {
-            display: flex;
-            gap: 8px;
-            margin-right: 12px;
-        }
-
-        .file-upload-btn {
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 50%;
-            width: 48px;
-            height: 48px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            transition: var(--transition);
-            position: relative;
-            border: 1px solid var(--border);
-        }
-
-        .file-upload-btn:hover {
-            background: rgba(255, 255, 255, 0.1);
-            transform: translateY(-2px);
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
-            border-color: var(--primary);
-            color: var(--primary);
-        }
-
-        .file-upload-btn i {
-            font-size: 18px;
-        }
-
-        /* 新增文件预览样式 */
+        /* 文件预览样式 */
         .file-preview {
             margin-top: 10px;
             padding: 16px;
@@ -699,6 +740,7 @@
             max-height: 250px;
             border-radius: 8px;
             margin-top: 12px;
+            border: 1px solid var(--border);
         }
 
         .file-preview pre {
@@ -709,6 +751,7 @@
             font-size: 14px;
             max-height: 200px;
             overflow-y: auto;
+            border: 1px solid var(--border);
         }
 
         .file-info {
@@ -831,6 +874,25 @@
             }
         }
 
+        /* 滚动条样式 */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
         /* 响应式调整 */
         @media (max-width: 768px) {
             .sidebar {
@@ -858,7 +920,16 @@
             }
 
             #send-btn {
-                padding: 14px 20px;
+    padding: 15px; /* 统一尺寸 */
+    width: 45px;
+    height: 45px;
+    border-radius: 50%; /* 圆形按钮 */
+    margin-left: 12px;
+    position: relative;
+  }
+
+            .file-upload-group {
+                 margin-right: 24px; /* 增加右边距 */
             }
         }
     </style>
@@ -885,6 +956,38 @@
             </button>
         </div>
 
+        <!-- 模型设置区域 -->
+        <div class="settings-section">
+            <div class="section-title">
+                <i class="fas fa-cogs"></i> 模型设置
+            </div>
+        
+            <!-- 模型选择 -->
+            <div class="setting-item">
+                <label for="model-select">模型选择</label>
+                <select id="model-select">
+                    <option value="DeepSeek-V3-Fast">DeepSeek V3 Fast</option>
+                    <option value="DeepSeek-R1-0528">DeepSeek R1 0528</option>
+                </select>
+            </div>
+        
+            <!-- 系统提示设置 -->
+            <div class="setting-item">
+                <label for="system-prompt">系统提示</label>
+                <textarea id="system-prompt" placeholder="设置AI助手的行为和角色">你是专属智能助手，负责回答客户的所有问题。</textarea>
+            </div>
+        
+            <!-- Max Tokens设置 -->
+            <div class="setting-item">
+                <label for="max-tokens">最大长度 (Max Tokens)</label>
+                <input type="range" id="max-tokens" min="256" max="16384" value="1024">
+                <div class="token-info">
+                    <span id="token-value">1024</span> tokens
+                    <span class="token-hint">(最大16384)</span>
+                </div>
+            </div>
+        </div>
+        
         <!-- 收藏会话区域 -->
         <div class="starred-section">
             <div class="section-title">
@@ -898,7 +1001,7 @@
                 </div>
             </div>
         </div>
-
+        
         <!-- 所有会话区域 -->
         <div class="section-title">
             <i class="fas fa-history"></i> 所有会话
@@ -910,93 +1013,106 @@
                 <p>暂无聊天记录</p>
             </div>
         </div>
-    </div>
-
-    <!-- 主聊天区域 -->
-    <div class="main-container">
-        <div class="header">
-            <div class="header-title">DeepSeek V3</div>
-            <div class="chat-info" id="chat-info">
-                <div class="status-indicator"></div>
-                <span>Server online</span>
+        </div>
+        
+        <!-- 主聊天区域 -->
+        <div class="main-container">
+            <div class="header">
+                <div class="header-title">DeepSeek V3</div>
+                <div class="chat-info" id="chat-info">
+                    <div class="status-indicator"></div>
+                    <span>Server online</span>
+                </div>
+            </div>
+        
+            <div class="chat-container" id="chat-container">
+                <div class="timestamp">今天</div>
+                <!-- 初始消息 -->
+                <div class="message assistant-message">
+                    您好！我是您的智能助手，有什么可以帮您的吗？
+                </div>
+                <!-- 聊天消息将动态添加到这里 -->
+            </div>
+        
+            <!-- 文件管理区 -->
+            <div class="files-container" id="files-container">
+                <!-- 已上传文件将在这里显示 -->
+            </div>
+        
+            <div class="input-area">
+                <div class="typing-indicator" id="typing-indicator">
+                    <span class="dot"></span>
+                    <span class="dot"></span>
+                    <span class="dot"></span>
+                </div>
+        
+                <!-- 文件上传按钮组 -->
+                <div class="file-upload-group">
+                    <label for="file-upload" class="file-upload-btn" title="上传文件和图片">
+                        <i class="fas fa-paperclip"></i>
+                        <input type="file" id="file-upload" accept=".pdf,.docx,.doc,.xlsx,.xls,.txt,.pptx,image/*" multiple
+                            style="display:none">
+                    </label>
+                </div>
+        
+                <input type="text" id="message-input" placeholder="请输入消息" autocomplete="off">
+        
+                <button id="cancel-btn">
+                    <i class="fas fa-stop-circle"></i>
+                </button>
+                <button id="send-btn">
+                    <i class="fas fa-paper-plane"></i> 发送
+                </button>
             </div>
         </div>
+        
+        <script>
+            const chatContainer = document.getElementById('chat-container');
+            const messageInput = document.getElementById('message-input');
+            const sendBtn = document.getElementById('send-btn');
+            const cancelBtn = document.getElementById('cancel-btn');
+            const typingIndicator = document.getElementById('typing-indicator');
+            const starredConversations = document.getElementById('starred-conversations');
+            const allConversations = document.getElementById('all-conversations');
+            const newChatBtn = document.getElementById('new-chat-btn');
+            const chatInfo = document.getElementById('chat-info');
+            const fileUpload = document.getElementById('file-upload');
+            const filesContainer = document.getElementById('files-container');
 
-        <div class="chat-container" id="chat-container">
-            <div class="timestamp">今天</div>
-            <!-- 初始消息 -->
-            <div class="message assistant-message">
-                您好！我是您的智能助手，有什么可以帮您的吗？
-            </div>
-            <!-- 聊天消息将动态添加到这里 -->
-        </div>
+            // 获取设置UI元素
+            const modelSelect = document.getElementById('model-select');
+            const systemPrompt = document.getElementById('system-prompt');
+            const maxTokensSlider = document.getElementById('max-tokens');
+            const tokenValue = document.getElementById('token-value');
 
-        <!-- 文件管理区 -->
-        <div class="files-container" id="files-container">
-            <!-- 已上传文件将在这里显示 -->
-        </div>
+            // 生成唯一会话ID
+            let currentSessionId = 'session_' + Date.now();
+            let currentAbortController = null;
 
-        <div class="input-area">
-            <div class="typing-indicator" id="typing-indicator">
-                <span class="dot"></span>
-                <span class="dot"></span>
-                <span class="dot"></span>
-            </div>
+            // 当前会话的文件列表
+            let currentFiles = [];
 
-            <!-- 文件上传按钮组 -->
-            <div class="file-upload-group">
-                <label for="file-upload" class="file-upload-btn" title="上传文件和图片">
-                    <i class="fas fa-paperclip"></i>
-                    <input type="file" id="file-upload" accept=".pdf,.docx,.doc,.xlsx,.xls,.txt,.pptx,image/*" multiple
-                        style="display:none">
-                </label>
-            </div>
+            // 当前是否正在处理回复
+            let isProcessing = false;
 
-            <input type="text" id="message-input" placeholder="请输入消息" autocomplete="off">
+            // 配置Marked.js
+            marked.setOptions({
+                breaks: true,
+                gfm: true,
+                headerIds: false
+            });
 
-            <button id="cancel-btn">
-                <i class="fas fa-stop-circle"></i> 
-            </button>
-            <button id="send-btn">
-                <i class="fas fa-paper-plane"></i> 发送
-            </button>
-        </div>
-    </div>
+            // 会话数据管理
+            let conversations = {};
 
-    <script>
-        const chatContainer = document.getElementById('chat-container');
-        const messageInput = document.getElementById('message-input');
-        const sendBtn = document.getElementById('send-btn');
-        const cancelBtn = document.getElementById('cancel-btn');
-        const typingIndicator = document.getElementById('typing-indicator');
-        const starredConversations = document.getElementById('starred-conversations');
-        const allConversations = document.getElementById('all-conversations');
-        const newChatBtn = document.getElementById('new-chat-btn');
-        const chatInfo = document.getElementById('chat-info');
-        const fileUpload = document.getElementById('file-upload');
-        const filesContainer = document.getElementById('files-container');
+            // 默认设置值
+            const DEFAULT_SETTINGS = {
+                model: "DeepSeek-V3-Fast",
+                systemPrompt: "",
+                maxTokens: 1024
+            };
 
-        // 生成唯一会话ID
-        let currentSessionId = 'session_' + Date.now();
-        let currentAbortController = null;
-
-        // 当前会话的文件列表
-        let currentFiles = [];
-
-        // 当前是否正在处理回复
-        let isProcessing = false;
-
-        // 配置Marked.js
-        marked.setOptions({
-            breaks: true,
-            gfm: true,
-            headerIds: false
-        });
-
-        // 会话数据管理
-        let conversations = {};
-
-        function addDebugButton() {
+            function addDebugButton() {
                 // 如果已经存在调试按钮，则更新它
                 let debugBtn = document.getElementById('debug-btn');
                 if (!debugBtn) {
@@ -1071,8 +1187,8 @@
                 document.body.appendChild(testButton);
             }
 
-        // 初始化会话历史
-        function initConversations() {
+            // 初始化会话历史
+            function initConversations() {
                 console.log("[Client] Initializing conversations...");
 
                 // 从本地存储加载会话
@@ -1135,13 +1251,13 @@
                     }
                 });
 
-                // 添加点击调试器（记录所有点击事件）
-                // document.addEventListener('click', function (e) {
-                //     console.log("[Click Debugger] Clicked element:", e.target);
-                // });
-
-                // 添加调试按钮
-                // addDebugButton();
+                // 添加设置事件监听
+                modelSelect.addEventListener('change', saveSettings);
+                systemPrompt.addEventListener('change', saveSettings);
+                maxTokensSlider.addEventListener('input', function () {
+                    tokenValue.textContent = this.value;
+                    saveSettings();
+                });
 
                 // 打印初始化完成信息
                 console.log(`[Client] Initialization complete for session: ${currentSessionId}`);
@@ -1154,168 +1270,171 @@
                 }
             }
 
-        // 创建新会话
-        function createNewConversation() {
-            currentSessionId = 'session_' + Date.now();
-            conversations[currentSessionId] = {
-                id: currentSessionId,
-                title: '新会话',
-                messages: [
-                    {
-                        role: "assistant",
-                        content: "您好！我是您的智能助手，有什么可以帮您的吗？"
-                    }
-                ],
-                files: {},
-                createdAt: Date.now(),
-                starred: false
-            };
+            // 创建新会话
+            function createNewConversation() {
+                currentSessionId = 'session_' + Date.now();
+                conversations[currentSessionId] = {
+                    id: currentSessionId,
+                    title: '新会话',
+                    messages: [
+                        {
+                            role: "assistant",
+                            content: "您好！我是您的智能助手，有什么可以帮您的吗？"
+                        }
+                    ],
+                    files: {},
+                    settings: { ...DEFAULT_SETTINGS },
+                    createdAt: Date.now(),
+                    starred: false
+                };
 
-            // 清除当前文件列表
-            currentFiles = [];
-            filesContainer.innerHTML = '';
-            filesContainer.style.display = 'none';
+                // 清除当前文件列表
+                currentFiles = [];
+                filesContainer.innerHTML = '';
+                filesContainer.style.display = 'none';
 
-            // 保存到本地存储
-            saveConversations();
+                // 保存到本地存储
+                saveConversations();
+
+                // 渲染会话列表
+                renderConversationsList();
+
+                // 渲染聊天区域
+                renderChatArea();
+            }
+
+            // 保存所有会话
+            function saveConversations() {
+                localStorage.setItem('conversations', JSON.stringify(conversations));
+            }
+
+            // 保存设置
+            function saveSettings() {
+                const conversation = conversations[currentSessionId];
+                if (!conversation) return;
+
+                conversation.settings = {
+                    model: modelSelect.value,
+                    systemPrompt: systemPrompt.value,
+                    maxTokens: parseInt(maxTokensSlider.value)
+                };
+
+                saveConversations();
+                console.log('设置已保存:', conversation.settings);
+            }
+
+            // 加载设置
+            function loadSettings() {
+                const conversation = conversations[currentSessionId];
+                if (conversation && conversation.settings) {
+                    modelSelect.value = conversation.settings.model;
+                    systemPrompt.value = conversation.settings.systemPrompt;
+                    maxTokensSlider.value = conversation.settings.maxTokens;
+                    tokenValue.textContent = conversation.settings.maxTokens;
+                }
+            }
 
             // 渲染会话列表
-            renderConversationsList();
+            function renderConversationsList() {
+                    starredConversations.innerHTML = ''; // 直接清空不再显示空状态
+                    allConversations.innerHTML = '';
 
-            // 渲染聊天区域
-            renderChatArea();
-        }
+                    // 只显示实际存在的会话
+                    if (Object.keys(conversations).length > 0) {
+                        // ...渲染会话逻辑
+                    } else {
+                        allConversations.innerHTML = `
+            <div class="empty-state">
+                <i class="fas fa-comments"></i>
+                <p>暂无聊天记录</p>
+            </div>
+        `;
+                    }
+                }
 
-        // 保存所有会话
-        function saveConversations() {
-            localStorage.setItem('conversations', JSON.stringify(conversations));
-        }
+            // 创建会话项
+            function createConversationItem(conversation, container) {
+                const isActive = conversation.id === currentSessionId;
+                const item = document.createElement('div');
+                item.className = `conversation-item ${isActive ? 'active' : ''}`;
 
-        // 渲染会话列表
-        function renderConversationsList() {
-            // 清空列表
-            starredConversations.innerHTML = '';
-            allConversations.innerHTML = '';
+                item.innerHTML = `
+                        <div class="conversation-title">${conversation.title}</div>
+                        <div class="conversation-actions">
+                            <button class="action-btn star-btn ${conversation.starred ? 'starred' : ''}" 
+                                    data-id="${conversation.id}" title="${conversation.starred ? '取消收藏' : '收藏会话'}">
+                                <i class="fas ${conversation.starred ? 'fa-star' : 'fa-star'}"></i>
+                            </button>
+                            <button class="action-btn delete-btn" data-id="${conversation.id}" title="删除会话">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    `;
 
-            // 检查是否有收藏会话
-            const starredItems = Object.values(conversations).filter(c => c.starred);
-            const nonStarredItems = Object.values(conversations).filter(c => !c.starred);
+                // 点击会话项切换会话
+                item.addEventListener('click', (e) => {
+                    if (!e.target.closest('.action-btn')) {
+                        currentSession极Id = conversation.id;
+                        renderConversationsList();
+                        renderChatArea();
+                        loadSettings(); // 加载当前会话的设置
 
-            // 按创建时间倒序排序
-            starredItems.sort((a, b) => b.createdAt - a.createdAt);
-            nonStarredItems.sort((a, b) => b.createdAt - a.createdAt);
-
-            // 渲染收藏会话
-            if (starredItems.length > 0) {
-                starredItems.forEach(conversation => {
-                    createConversationItem(conversation, starredConversations);
+                        // 更新文件列表
+                        updateFilesContainer();
+                    }
                 });
-            } else {
-                starredConversations.innerHTML = `
-                    <div class="empty-state">
-                        <i class="far fa-star"></i>
-                        <p>暂无收藏会话</p>
-                    </div>
-                `;
+
+                // 添加收藏按钮事件
+                const starBtn = item.querySelector('.star-btn');
+                starBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    toggleStarConversation(conversation.id);
+                });
+
+                // 添加删除按钮事件
+                const deleteBtn = item.querySelector('.delete-btn');
+                deleteBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    deleteConversation(conversation.id);
+                });
+
+                container.appendChild(item);
             }
 
-            // 渲染所有会话
-            if (nonStarredItems.length > 0) {
-                nonStarredItems.forEach(conversation => {
-                    createConversationItem(conversation, allConversations);
-                });
-            } else {
-                allConversations.innerHTML = `
-                    <div class="empty-state">
-                        <i class="fas fa-comments"></i>
-                        <p>暂无聊天记录</p>
-                    </div>
-                `;
+            // 切换会话收藏状态
+            function toggleStarConversation(conversationId) {
+                if (conversations[conversationId]) {
+                    conversations[conversationId].starred = !conversations[conversationId].starred;
+                    saveConversations();
+                    renderConversationsList();
+                }
             }
-        }
 
-        // 创建会话项
-        function createConversationItem(conversation, container) {
-            const isActive = conversation.id === currentSessionId;
-            const item = document.createElement('div');
-            item.className = `conversation-item ${isActive ? 'active' : ''}`;
+            // 删除会话
+            function deleteConversation(conversationId) {
+                if (confirm('确定要删除此会话吗？此操作不可恢复。')) {
+                    if (conversationId === currentSessionId) {
+                        // 如果删除的是当前会话，切换到另一个会话
+                        const otherSessions = Object.keys(conversations).filter(id => id !== conversationId);
+                        if (otherSessions.length > 0) {
+                            currentSessionId = otherSessions[0];
+                        } else {
+                            createNewConversation();
+                        }
+                    }
 
-            item.innerHTML = `
-                <div class="conversation-title">${conversation.title}</div>
-                <div class="conversation-actions">
-                    <button class="action-btn star-btn ${conversation.starred ? 'starred' : ''}" 
-                            data-id="${conversation.id}" title="${conversation.starred ? '取消收藏' : '收藏会话'}">
-                        <i class="fas ${conversation.starred ? 'fa-star' : 'fa-star'}"></i>
-                    </button>
-                    <button class="action-btn delete-btn" data-id="${conversation.id}" title="删除会话">
-                        <i class="fas fa-trash"></i>
-                    </button>
-                </div>
-            `;
-
-            // 点击会话项切换会话
-            item.addEventListener('click', (e) => {
-                if (!e.target.closest('.action-btn')) {
-                    currentSessionId = conversation.id;
+                    delete conversations[conversationId];
+                    saveConversations();
                     renderConversationsList();
                     renderChatArea();
 
                     // 更新文件列表
                     updateFilesContainer();
                 }
-            });
-
-            // 添加收藏按钮事件
-            const starBtn = item.querySelector('.star-btn');
-            starBtn.addEventListener('click', (e) => {
-                e.stopPropagation();
-                toggleStarConversation(conversation.id);
-            });
-
-            // 添加删除按钮事件
-            const deleteBtn = item.querySelector('.delete-btn');
-            deleteBtn.addEventListener('click', (e) => {
-                e.stopPropagation();
-                deleteConversation(conversation.id);
-            });
-
-            container.appendChild(item);
-        }
-
-        // 切换会话收藏状态
-        function toggleStarConversation(conversationId) {
-            if (conversations[conversationId]) {
-                conversations[conversationId].starred = !conversations[conversationId].starred;
-                saveConversations();
-                renderConversationsList();
             }
-        }
 
-        // 删除会话
-        function deleteConversation(conversationId) {
-            if (confirm('确定要删除此会话吗？此操作不可恢复。')) {
-                if (conversationId === currentSessionId) {
-                    // 如果删除的是当前会话，切换到另一个会话
-                    const otherSessions = Object.keys(conversations).filter(id => id !== conversationId);
-                    if (otherSessions.length > 0) {
-                        currentSessionId = otherSessions[0];
-                    } else {
-                        createNewConversation();
-                    }
-                }
-
-                delete conversations[conversationId];
-                saveConversations();
-                renderConversationsList();
-                renderChatArea();
-
-                // 更新文件列表
-                updateFilesContainer();
-            }
-        }
-
-        // 更新文件容器
-        function updateFilesContainer() {
+            // 更新文件容器
+            function updateFilesContainer() {
                 const filesContainer = document.getElementById('files-container');
                 filesContainer.innerHTML = '';
 
@@ -1339,49 +1458,52 @@
                 }
             }
 
-        // 渲染聊天区域
-        function renderChatArea() {
-            const chatContainer = document.getElementById('chat-container');
-            chatContainer.innerHTML = '';
+            // 渲染聊天区域
+            function renderChatArea() {
+                const chatContainer = document.getElementById('chat-container');
+                chatContainer.innerHTML = '';
 
-            const conversation = conversations[currentSessionId];
-            if (conversation) {
-                chatInfo.textContent = conversation.title;
+                const conversation = conversations[currentSessionId];
+                if (conversation) {
+                    chatInfo.textContent = conversation.title;
 
-                conversation.messages.forEach(msg => {
-                    if (msg.role === 'system') return;
+                    conversation.messages.forEach(msg => {
+                        if (msg.role === 'system') return;
 
-                    const messageElement = document.createElement('div');
-                    messageElement.className = `message ${msg.role}-message`;
+                        const messageElement = document.createElement('div');
+                        messageElement.className = `message ${msg.role}-message`;
 
-                    if (msg.isFile) {
-                        // 文件消息直接使用保存的HTML
-                        try {
-                            messageElement.innerHTML = msg.file_info.preview_html;
-                        } catch (e) {
-                            messageElement.textContent = "文件内容显示错误";
+                        if (msg.isFile) {
+                            // 文件消息直接使用保存的HTML
+                            try {
+                                messageElement.innerHTML = msg.file_info.preview_html;
+                            } catch (e) {
+                                messageElement.textContent = "文件内容显示错误";
+                            }
+                        } else if (msg.role === 'assistant') {
+                            messageElement.innerHTML = marked.parse(msg.content);
+                        } else {
+                            messageElement.textContent = msg.content;
                         }
-                    } else if (msg.role === 'assistant') {
-                        messageElement.innerHTML = marked.parse(msg.content);
-                    } else {
-                        messageElement.textContent = msg.content;
-                    }
 
-                    chatContainer.appendChild(messageElement);
-                });
+                        chatContainer.appendChild(messageElement);
+                    });
+                }
+
+                // 加载当前会话的设置
+                loadSettings();
+
+                // 滚动到底部
+                setTimeout(() => {
+                    chatContainer.scrollTop = chatContainer.scrollHeight;
+                }, 100);
+
+                // 更新文件列表
+                updateFilesContainer();
             }
 
-            // 滚动到底部
-            setTimeout(() => {
-                chatContainer.scrollTop = chatContainer.scrollHeight;
-            }, 100);
-
-            // 更新文件列表
-            updateFilesContainer();
-        }
-
-        // 添加文件到UI
-        function addFileToUI(file) {
+            // 添加文件到UI
+            function addFileToUI(file) {
                 console.log(`[Client] Adding file to UI: ${file.filename} (${file.file_id})`);
 
                 const filesContainer = document.getElementById('files-container');
@@ -1440,335 +1562,340 @@
                 console.log(`[Client] File container now has ${filesContainer.children.length} items`);
             }
 
-        // 上传文件处理
-        async function handleMultiFileUpload(event) {
-            const files = event.target.files;
-            if (!files || files.length === 0) return;
+            // 上传文件处理
+            async function handleMultiFileUpload(event) {
+                const files = event.target.files;
+                if (!files || files.length === 0) return;
 
-            const originalButtonText = sendBtn.innerHTML;
-            sendBtn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> 处理中...`;
-            sendBtn.disabled = true;
+                const originalButtonText = sendBtn.innerHTML;
+                sendBtn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> 处理中...`;
+                sendBtn.disabled = true;
 
-            try {
-                // 创建FormData对象
-                const formData = new FormData();
-                formData.append('session_id', currentSessionId);
+                try {
+                    // 创建FormData对象
+                    const formData = new FormData();
+                    formData.append('session_id', currentSessionId);
 
-                // 添加所有文件
-                for (let i = 0; i < files.length; i++) {
-                    formData.append('files[]', files[i]);
-                }
+                    // 添加所有文件
+                    for (let i = 0; i < files.length; i++) {
+                        formData.append('files[]', files[i]);
+                    }
 
-                // 发送上传请求
-                const response = await fetch('/upload-multi', {
-                    method: 'POST',
-                    body: formData
-                });
-
-                const result = await response.json();
-
-                if (result.status === 'success') {
-                    // 添加文件到UI和会话
-                    result.files.forEach(file => {
-                        if (file.status === 'success') {
-                            // 添加到当前会话
-                            conversations[currentSessionId].files[file.file_id] = file;
-
-                            // 添加到会话历史
-                            conversations[currentSessionId].messages.push({
-                                role: "user",
-                                content: `上传了${file.file_type}文件: ${file.filename} (ID: ${file.display_id})`,
-                                is_file: true,
-                                file_info: file
-                            });
-                        }
+                    // 发送上传请求
+                    const response = await fetch('/upload-multi', {
+                        method: 'POST',
+                        body: formData
                     });
-                    // 确保文件管理区可见
-                    filesContainer.classList.add('visible');
 
-                    // 保存会话
-                    saveConversations();
+                    const result = await response.json();
 
-                    updateFilesContainer();
+                    if (result.status === 'success') {
+                        // 添加文件到UI和会话
+                        result.files.forEach(file => {
+                            if (file.status === 'success') {
+                                // 添加到当前会话
+                                conversations[currentSessionId].files[file.file_id] = file;
 
-                } else {
-                    throw new Error(result.message || '文件上传失败');
+                                // 添加到会话历史
+                                conversations[currentSessionId].messages.push({
+                                    role: "user",
+                                    content: `上传了${file.file_type}文件: ${file.filename} (ID: ${file.display_id})`,
+                                    is_file: true,
+                                    file_info: file
+                                });
+                            }
+                        });
+                        // 确保文件管理区可见
+                        filesContainer.classList.add('visible');
+
+                        // 保存会话
+                        saveConversations();
+
+                        updateFilesContainer();
+
+                    } else {
+                        throw new Error(result.message || '文件上传失败');
+                    }
+                } catch (error) {
+                    // 显示错误消息
+                    addMessageToChat(`文件上传失败: ${error.message}`, 'assistant');
+                } finally {
+                    sendBtn.innerHTML = originalButtonText;
+                    sendBtn.disabled = false;
+                    event.target.value = ''; // 重置文件选择
                 }
-            } catch (error) {
-                // 显示错误消息
-                addMessageToChat(`文件上传失败: ${error.message}`, 'assistant');
-            } finally {
-                sendBtn.innerHTML = originalButtonText;
-                sendBtn.disabled = false;
-                event.target.value = ''; // 重置文件选择
             }
-        }
 
-        // 移除文件
-        // 修改 removeFile 函数
-       async function removeFile(fileId) {
-            console.log(`[Client] Starting file removal: ${fileId}`);
+            // 移除文件
+            async function removeFile(fileId) {
+                console.log(`[Client] Starting file removal: ${fileId}`);
 
-            try {
-                // 尝试调用API删除
-                const response = await fetch(`/remove-file/${fileId}?session_id=${currentSessionId}`, {
-                    method: 'DELETE'
-                });
+                try {
+                    // 尝试调用API删除
+                    const response = await fetch(`/remove-file/${fileId}?session_id=${currentSessionId}`, {
+                        method: 'DELETE'
+                    });
 
-                if (!response.ok) {
-                    throw new Error(`API request failed with status ${response.status}`);
-                }
+                    if (!response.ok) {
+                        throw new Error(`API request failed with status ${response.status}`);
+                    }
 
-                const result = await response.json();
-                console.log(`[Client] API response:`, result);
+                    const result = await response.json();
+                    console.log(`[Client] API response:`, result);
 
-                if (result.status === 'success') {
-                    console.log(`[Client] File removed via API: ${fileId}`);
+                    if (result.status === 'success') {
+                        console.log(`[Client] File removed via API: ${fileId}`);
 
-                    // 从当前会话中移除文件
+                        // 从当前会话中移除文件
+                        if (conversations[currentSessionId] && conversations[currentSessionId].files[fileId]) {
+                            delete conversations[currentSessionId].files[fileId];
+                            saveConversations();
+                            updateFilesContainer();
+
+                            // 显示成功消息
+                            addMessageToChat(`✅ 已移除文件: ${result.display_id}`, 'assistant');
+                        }
+                    } else {
+                        throw new Error(result.message || 'API returned error');
+                    }
+                } catch (error) {
+                    console.error(`[Client] API removal failed: ${error.message}`);
+
+                    // 即使API失败也尝试本地删除
                     if (conversations[currentSessionId] && conversations[currentSessionId].files[fileId]) {
+                        console.log(`[Client] Attempting local removal: ${fileId}`);
+
+                        const fileInfo = conversations[currentSessionId].files[fileId];
                         delete conversations[currentSessionId].files[fileId];
                         saveConversations();
                         updateFilesContainer();
 
                         // 显示成功消息
-                        addMessageToChat(`✅ 已移除文件: ${result.display_id}`, 'assistant');
+                        addMessageToChat(`✅ 已本地移除文件: ${fileInfo.display_id}`, 'assistant');
+                        console.log(`[Client] Locally removed file: ${fileId}`);
+                    } else {
+                        console.warn(`[Client] File not found in local data: ${fileId}`);
+                        addMessageToChat(`❌❌❌❌ 文件移除失败: 文件不存在`, 'assistant');
                     }
-                } else {
-                    throw new Error(result.message || 'API returned error');
                 }
-            } catch (error) {
-                console.error(`[Client] API removal failed: ${error.message}`);
+            }
 
-                // 即使API失败也尝试本地删除
+            // 在全局添加手动删除函数
+            function forceRemoveFile(fileId) {
                 if (conversations[currentSessionId] && conversations[currentSessionId].files[fileId]) {
-                    console.log(`[Client] Attempting local removal: ${fileId}`);
-
-                    const fileInfo = conversations[currentSessionId].files[fileId];
                     delete conversations[currentSessionId].files[fileId];
                     saveConversations();
                     updateFilesContainer();
-
-                    // 显示成功消息
-                    addMessageToChat(`✅ 已本地移除文件: ${fileInfo.display_id}`, 'assistant');
-                    console.log(`[Client] Locally removed file: ${fileId}`);
-                } else {
-                    console.warn(`[Client] File not found in local data: ${fileId}`);
-                    addMessageToChat(`❌ 文件移除失败: 文件不存在`, 'assistant');
+                    addMessageToChat(`✅ 已强制移除文件: ${fileId}`, 'assistant');
                 }
             }
-        }
 
-            // 在全局添加手动删除函数
-                function forceRemoveFile(fileId) {
-                    if (conversations[currentSessionId] && conversations[currentSessionId].files[fileId]) {
-                        delete conversations[currentSessionId].files[fileId];
-                        saveConversations();
-                        updateFilesContainer();
-                        addMessageToChat(`✅ 已强制移除文件: ${fileId}`, 'assistant');
-                    }
-                }
+            // 发送消息函数
+            async function sendMessage() {
+                const message = messageInput.value.trim();
+                if (!message || isProcessing) return;
 
-        // 发送消息函数
-        async function sendMessage() {
-            const message = messageInput.value.trim();
-            if (!message || isProcessing) return;
+                // 添加用户消息到聊天界面和会话数据
+                addMessageToChat(message, 'user');
+                addToConversation(message, 'user');
 
-            // 添加用户消息到聊天界面和会话数据
-            addMessageToChat(message, 'user');
-            addToConversation(message, 'user');
+                messageInput.value = '';
+                messageInput.focus();
 
-            messageInput.value = '';
-            messageInput.focus();
+                try {
+                    isProcessing = true;
+                    sendBtn.disabled = true;
+                    cancelBtn.style.display = 'flex';
 
-            try {
-                isProcessing = true;
-                sendBtn.disabled = true;
-                cancelBtn.style.display = 'flex';
+                    typingIndicator.style.display = 'flex';
+                    chatContainer.scrollTop = chatContainer.scrollHeight;
 
-                typingIndicator.style.display = 'flex';
-                chatContainer.scrollTop = chatContainer.scrollHeight;
+                    // 创建助手消息占位符
+                    const assistantMessageElement = document.createElement('div');
+                    assistantMessageElement.className = 'message assistant-message';
+                    assistantMessageElement.id = 'assistant-typing';
+                    assistantMessageElement.innerHTML = '<span class="assistant-typing"></span>';
+                    chatContainer.appendChild(assistantMessageElement);
 
-                // 创建助手消息占位符
-                const assistantMessageElement = document.createElement('div');
-                assistantMessageElement.className = 'message assistant-message';
-                assistantMessageElement.id = 'assistant-typing';
-                assistantMessageElement.innerHTML = '<span class="assistant-typing"></span>';
-                chatContainer.appendChild(assistantMessageElement);
+                    // 准备API请求
+                    currentAbortController = new AbortController();
 
-                // 准备API请求
-                currentAbortController = new AbortController();
+                    // 获取引用的文件ID
+                    const fileRefs = Object.values(conversations[currentSessionId].files)
+                        .filter(file => message.includes(file.display_id))
+                        .map(file => file.file_id);
 
-                // 获取引用的文件ID
-                const fileRefs = Object.values(conversations[currentSessionId].files)
-                    .filter(file => message.includes(file.display_id))
-                    .map(file => file.file_id);
+                            // 获取当前设置
+                            const settings = conversations[currentSessionId].settings;
 
-                // 发送请求
-                const response = await fetch('/chat', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        session_id: currentSessionId,
-                        message: message,
-                        file_references: fileRefs
-                    }),
-                    signal: currentAbortController.signal
-                });
+                            // 发送请求
+                            const response = await fetch('/chat', {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json'
+                                },
+                                body: JSON.stringify({
+                                    session_id: currentSessionId,
+                                    message: message,
+                                    model: settings.model,
+                                    system_prompt: settings.systemPrompt,
+                                    max_tokens: settings.maxTokens,
+                                    file_references: fileRefs
+                                }),
+                                signal: currentAbortController.signal
+                            });
 
-                if (!response.ok) {
-                    throw new Error(`请求失败: ${response.status} ${response.statusText}`);
-                }
-
-                // 处理流式响应
-                const reader = response.body.getReader();
-                const decoder = new TextDecoder('utf-8');
-                let buffer = '';
-                let markdownBuffer = '';
-
-                while (true) {
-                    const { value, done } = await reader.read();
-                    if (done) break;
-
-                    buffer += decoder.decode(value, { stream: true });
-
-                    let lines = buffer.split('\n\n');
-                    buffer = lines.pop() || '';
-
-                    for (const line of lines) {
-                        if (!line.startsWith('data: ')) continue;
-
-                        const eventData = line.substring(6).trim();
-                        if (!eventData) continue;
-
-                        try {
-                            const data = JSON.parse(eventData);
-
-                            if (data.char) {
-                                markdownBuffer += data.char;
-                                assistantMessageElement.innerHTML = marked.parse(markdownBuffer) + '<span class="assistant-typing"></span>';
-                                chatContainer.scrollTop = chatContainer.scrollHeight;
+                            if (!response.ok) {
+                                throw new Error(`请求失败: ${response.status} ${response.statusText}`);
                             }
 
-                            if (data.done) {
-                                assistantMessageElement.innerHTML = marked.parse(markdownBuffer);
-                                typingIndicator.style.display = 'none';
-                                isProcessing = false;
-                                sendBtn.disabled = false;
-                                cancelBtn.style.display = 'none';
-                                assistantMessageElement.id = '';
+                            // 处理流式响应
+                            const reader = response.body.getReader();
+                            const decoder = new TextDecoder('utf-8');
+                            let buffer = '';
+                            let markdownBuffer = '';
 
-                                // 添加助手回复到会话数据
-                                addToConversation(markdownBuffer, 'assistant');
+                            while (true) {
+                                const { value, done } = await reader.read();
+                                if (done) break;
+
+                                buffer += decoder.decode(value, { stream: true });
+
+                                let lines = buffer.split('\n\n');
+                                buffer = lines.pop() || '';
+
+                                for (const line of lines) {
+                                    if (!line.startsWith('data: ')) continue;
+
+                                    const eventData = line.substring(6).trim();
+                                    if (!eventData) continue;
+
+                                    try {
+                                        const data = JSON.parse(eventData);
+
+                                        if (data.char) {
+                                            markdownBuffer += data.char;
+                                            assistantMessageElement.innerHTML = marked.parse(markdownBuffer) + '<span class="assistant-typing"></span>';
+                                            chatContainer.scrollTop = chatContainer.scrollHeight;
+                                        }
+
+                                        if (data.done) {
+                                            assistantMessageElement.innerHTML = marked.parse(markdownBuffer);
+                                            typingIndicator.style.display = 'none';
+                                            isProcessing = false;
+                                            sendBtn.disabled = false;
+                                            cancelBtn.style.display = 'none';
+                                            assistantMessageElement.id = '';
+
+                                            // 添加助手回复到会话数据
+                                            addToConversation(markdownBuffer, 'assistant');
+                                        }
+
+                                        if (data.error) {
+                                            assistantMessageElement.innerHTML = marked.parse(`⚠️ ${data.error}`);
+                                            typingIndicator.style.display = '极none';
+                                            isProcessing = false;
+                                            sendBtn.disabled = false;
+                                            cancelBtn.style.display = 'none';
+                                        }
+                                    } catch (e) {
+                                        console.error('解析错误:', e);
+                                    }
+                                }
                             }
 
-                            if (data.error) {
-                                assistantMessageElement.innerHTML = marked.parse(`⚠️ ${data.error}`);
-                                typingIndicator.style.display = 'none';
-                                isProcessing = false;
-                                sendBtn.disabled = false;
-                                cancelBtn.style.display = 'none';
+                        } catch (error) {
+                            if (error.name === 'AbortError') {
+                                const errorElement = document.getElementById('assistant-typing');
+                                if (errorElement) {
+                                    errorElement.innerHTML = marked.parse('🚫 输出已停止');
+                                    errorElement.id = '';
+                                    addToConversation('🚫 输出已停止', 'assistant');
+                                }
+                            } else {
+                                console.error('请求错误:', error);
+                                const errorElement = document.getElementById('assistant-typing');
+                                if (errorElement) {
+                                    errorElement.innerHTML = marked.parse(`⚠️ 请求失败: ${error.message}`);
+                                    errorElement.id = '';
+                                } else {
+                                    addMessageToChat(`⚠️ 请求失败: ${error.message}`, 'assistant');
+                                }
                             }
-                        } catch (e) {
-                            console.error('解析错误:', e);
+
+                            typingIndicator.style.display = 'none';
+                            isProcessing = false;
+                            sendBtn.disabled = false;
+                            cancelBtn.style.display = 'none';
                         }
                     }
-                }
 
-            } catch (error) {
-                if (error.name === 'AbortError') {
-                    const errorElement = document.getElementById('assistant-typing');
-                    if (errorElement) {
-                        errorElement.innerHTML = marked.parse('🚫 输出已停止');
-                        errorElement.id = '';
-                        addToConversation('🚫 输出已停止', 'assistant');
+                    // 添加消息到聊天界面
+                    function addMessageToChat(message, sender) {
+                        const messageElement = document.createElement('div');
+                        messageElement.className = `message ${sender}-message`;
+
+                        if (sender === 'assistant') {
+                            messageElement.innerHTML = marked.parse(message);
+                        } else {
+                            messageElement.textContent = message;
+                        }
+
+                        chatContainer.appendChild(messageElement);
+                        // 滚动到底部
+                        chatContainer.scrollTop = chatContainer.scrollHeight;
                     }
-                } else {
-                    console.error('请求错误:', error);
-                    const errorElement = document.getElementById('assistant-typing');
-                    if (errorElement) {
-                        errorElement.innerHTML = marked.parse(`⚠️ 请求失败: ${error.message}`);
-                        errorElement.id = '';
-                    } else {
-                        addMessageToChat(`⚠️ 请求失败: ${error.message}`, 'assistant');
+
+                    // 添加消息到会话数据
+                    function addToConversation(content, role) {
+                        const conversation = conversations[currentSessionId];
+                        if (!conversation) return;
+
+                        conversation.messages.push({
+                            role: role,
+                            content: content,
+                            is_file: false
+                        });
+
+                        // 更新会话标题（使用第一条用户消息）
+                        if (role === 'user' && conversation.title === '新会话') {
+                            conversation.title = content.substring(0, 30) + (content.length > 30 ? '...' : '');
+                        }
+
+                        // 保存会话
+                        saveConversations();
+                        renderConversationsList();
                     }
-                }
 
-                typingIndicator.style.display = 'none';
-                isProcessing = false;
-                sendBtn.disabled = false;
-                cancelBtn.style.display = 'none';
-            }
-        }
+                    // 事件监听
+                    sendBtn.addEventListener('click', sendMessage);
+                    messageInput.addEventListener('keypress', (e) => {
+                        if (e.key === 'Enter' && !isProcessing) {
+                            sendMessage();
+                        }
+                    });
 
-        // 添加消息到聊天界面
-        function addMessageToChat(message, sender) {
-            const messageElement = document.createElement('div');
-            messageElement.className = `message ${sender}-message`;
+                    cancelBtn.addEventListener('click', () => {
+                        if (currentAbortController) {
+                            currentAbortController.abort();
+                        }
+                        cancelBtn.style.display = 'none';
+                        isProcessing = false;
+                        sendBtn.disabled = false;
+                        typingIndicator.style.display = 'none';
+                    });
 
-            if (sender === 'assistant') {
-                messageElement.innerHTML = marked.parse(message);
-            } else {
-                messageElement.textContent = message;
-            }
+                    newChatBtn.addEventListener('click', createNewConversation);
 
-            chatContainer.appendChild(messageElement);
-            // 滚动到底部
-            chatContainer.scrollTop = chatContainer.scrollHeight;
-        }
+                    // 文件上传事件
+                    fileUpload.addEventListener('change', handleMultiFileUpload);
 
-        // 添加消息到会话数据
-        function addToConversation(content, role) {
-            const conversation = conversations[currentSessionId];
-            if (!conversation) return;
-
-            conversation.messages.push({
-                role: role,
-                content: content,
-                is_file: false
-            });
-
-            // 更新会话标题（使用第一条用户消息）
-            if (role === 'user' && conversation.title === '新会话') {
-                conversation.title = content.substring(0, 30) + (content.length > 30 ? '...' : '');
-            }
-
-            // 保存会话
-            saveConversations();
-            renderConversationsList();
-        }
-
-        // 事件监听
-        sendBtn.addEventListener('click', sendMessage);
-        messageInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter' && !isProcessing) {
-                sendMessage();
-            }
-        });
-
-        cancelBtn.addEventListener('click', () => {
-            if (currentAbortController) {
-                currentAbortController.abort();
-            }
-            cancelBtn.style.display = 'none';
-            isProcessing = false;
-            sendBtn.disabled = false;
-            typingIndicator.style.display = 'none';
-        });
-
-        newChatBtn.addEventListener('click', createNewConversation);
-
-        // 文件上传事件
-        fileUpload.addEventListener('change', handleMultiFileUpload);
-
-        // 初始化应用
-        window.addEventListener('load', () => {
-            initConversations();
-            messageInput.focus();
-        });
-    </script>
-</body>
-
-</html>
+                    // 初始化应用
+                    window.addEventListener('load', () => {
+                        initConversations();
+                        messageInput.focus();
+                    });
+                </script>
+    </body>
+    
+    </html>
