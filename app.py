@@ -45,9 +45,9 @@ conversations = {}
 
 # 默认设置值
 DEFAULT_SETTINGS = {
-    "model": "DeepSeek-V3-Fast",
-    "system_prompt": "你是伏秋杨的智能助手，负责分析用户提供的文件和图片内容。",
-    "max_tokens": 1024
+    "model": "DeepSeek-V3-Fast:1xh4CuJsBMrlAvdLBAZYfC",
+    "system_prompt": "你是专属智能助手，负责回答用户的任何问题，分析用户提供的文件和图片内容。",
+    "max_tokens": 16384
 }
 
 def find_free_port(start_port=5000, end_port=5050):
