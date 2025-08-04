@@ -1,11 +1,18 @@
-# Miniature AI Chat Agent
+# AI Chat Agent
 
-A full-stack AI assistant application with file analysis capabilities, featuring a modern dark-themed UI and real-time chat functionality.
+## Overview
+A DeepSeek based web application that enables users to analyze document and image content using AI capabilities. Built with Flask and SophNet API, this application allows users to upload various file formats, extract text content, and ask questions about the documents through an intuitive chat interface.
 
-## Features
-
-- **AI Chat Interface**: Streamed responses using DeepSeek V3 model
-- **File Analysis**: Supports PDF, DOCX, XLSX, PPTX, TXT, and images
-- **Session Management**: Create, star, and delete conversations
-- **Smart File Referencing**: Reference uploaded files in chat using IDs
-- **Responsive Design**: Works on both desktop and mobile devices
+## Key Features
+- 🗂️ **Multi-format Support**:  
+  Upload PDF, DOCX, XLSX, TXT, PPTX, JPG, PNG and other common file types
+- 🧠 **AI-Powered Analysis**:  
+  Ask questions about your documents using DeepSeek models (V3, R1 0528)
+- 📁 **File Management**:  
+  Organize files with unique IDs and reference them in your questions
+- 💬 **Conversational Interface**:  
+  Natural chat experience with streaming responses
+- 🔗 **Session Management**:  
+  Create, save, star, and organize multiple conversations
+- 🎨 **Modern UI**:  
+  Dark theme with responsive design and animated elements
