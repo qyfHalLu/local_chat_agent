@@ -362,8 +362,10 @@ def remove_file(file_id):
     conversation = get_conversation(session_id)
     
     if file_id in conversation['files']:
-        # 记录移除操作
+        # 获取文件信息
         file_info = conversation['files'][file_id]
+        
+        # 记录移除操作
         conversation['messages'].append({
             "role": "system",
             "content": f"用户移除了文件: {file_info['filename']} (ID: {file_info['display_id']})"
@@ -373,14 +375,18 @@ def remove_file(file_id):
         del conversation['files'][file_id]
         conversation['lastActive'] = time.time()
         
+        # 返回成功消息并包含文件详细信息
         return jsonify({
             'status': 'success',
-            'message': f"文件 {file_info['display_id']} 已移除"
+            'message': f"文件 {file_info['display_id']} 已移除",
+            'filename': file_info['filename'],
+            'display_id': file_info['display_id'],
+            'file_id': file_id
         })
     
     return jsonify({
         'status': 'error',
-        'message': '文件不存在'
+        'message': f'文件不存在: {file_id}'
     }), 404
 
 @app.route('/chat', methods=['POST'])
@@ -507,7 +513,7 @@ def get_conversations():
             {
                 'id': conv['id'],
                 'title': conv['title'],
-                'createdAt': conv['created极'],
+                'createdAt': conv['createdAt'],
                 'lastActive': conv.get('lastActive', conv['createdAt']),
                 'starred': conv.get('starred', False),
                 'file_count': len(conv.get('files', {}))
@@ -621,7 +627,7 @@ if __name__ == '__main__':
         port = 5000
         print("⚠️ 未找到可用端口，尝试使用5000端口")
     
-    print(f"🚀 服务器将在端口 {port} 启动")
+    print(f"🚀🚀 服务器将在端口 {port} 启动")
     
     # 在独立线程中打开浏览器
     threading.Thread(target=start_browser, args=(port,)).start()

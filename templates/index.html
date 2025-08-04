@@ -253,7 +253,7 @@
         }
 
         .header-title {
-            font-size: 18px;
+            font-size: 20px;
             font-weight: 500;
             margin: 0 auto;
             letter-spacing: 0.3px;
@@ -378,7 +378,7 @@
 
         /* 文件管理区 - 更简约 */
         .files-container {
-            display: flex;
+            display: none;
             flex-wrap: wrap;
             gap: 8px;
             padding: 12px;
@@ -396,6 +396,7 @@
         .files-container.visible {
             transform: translateY(0);
             opacity: 1;
+            display: flex;
         }
 
         .file-item {
@@ -910,7 +911,7 @@
             <div class="header-title">DeepSeek V3</div>
             <div class="chat-info" id="chat-info">
                 <div class="status-indicator"></div>
-                <span>在线 · 响应快速</span>
+                <span>Server online</span>
             </div>
         </div>
 
@@ -947,7 +948,7 @@
             <input type="text" id="message-input" placeholder="请输入消息" autocomplete="off">
 
             <button id="cancel-btn">
-                <i class="fas fa-stop-circle"></i> 停止
+                <i class="fas fa-stop-circle"></i> 
             </button>
             <button id="send-btn">
                 <i class="fas fa-paper-plane"></i> 发送
@@ -1008,6 +1009,7 @@
             }
 
             renderChatArea();
+            updateFilesContainer();
         }
 
         // 创建新会话
@@ -1174,19 +1176,19 @@
         function updateFilesContainer() {
             const conversation = conversations[currentSessionId];
             filesContainer.innerHTML = '';
-            filesContainer.className = 'files-container';
 
             if (conversation && Object.keys(conversation.files).length > 0) {
-                filesContainer.style.display = 'flex';
+                // 添加文件项
                 Object.values(conversation.files).forEach(file => {
                     addFileToUI(file);
                 });
-                // 添加动画类
-                setTimeout(() => {
-                    filesContainer.classList.add('visible');
-                }, 100);
+
+                // 确保文件管理区可见
+                filesContainer.classList.add('visible');
+                filesContainer.style.display = 'flex'; // 强制显示
             } else {
-                filesContainer.style.display = 'none';
+                filesContainer.classList.remove('visible');
+                filesContainer.style.display = 'none'; // 确保隐藏
             }
         }
 
@@ -1234,7 +1236,6 @@
         // 添加文件到UI
         function addFileToUI(file) {
             const filesContainer = document.getElementById('files-container');
-            filesContainer.style.display = 'flex';
 
             // 获取不带扩展名的文件名
             const fileName = file.filename.replace(/\.[^/.]+$/, "");
@@ -1259,9 +1260,12 @@
             });
 
             // 添加删除功能
-            fileItem.querySelector('.file-remove-btn').addEventListener('click', (e) => {
+            const removeBtn = fileItem.querySelector('.file-remove-btn');
+            removeBtn.addEventListener('click', (e) => {
                 e.stopPropagation();
-                removeFile(file.file_id);
+                // 获取文件ID时确保使用正确的来源
+                const fileId = fileItem.dataset.fileId;
+                removeFile(fileId);
             });
 
             filesContainer.appendChild(fileItem);
@@ -1308,14 +1312,16 @@
                                 is_file: true,
                                 file_info: file
                             });
-
-                            // 添加到UI
-                            addFileToUI(file);
                         }
                     });
+                    // 确保文件管理区可见
+                    filesContainer.classList.add('visible');
 
                     // 保存会话
                     saveConversations();
+
+                    updateFilesContainer();
+
                 } else {
                     throw new Error(result.message || '文件上传失败');
                 }
@@ -1330,42 +1336,38 @@
         }
 
         // 移除文件
-        async function removeFile(fileId) {
-            try {
-                // 发送删除请求
-                const response = await fetch(`/remove-file/${fileId}?session_id=${currentSessionId}`, {
-                    method: 'DELETE'
-                });
-
-                const result = await response.json();
-
-                if (result.status === 'success') {
-                    // 从当前会话中移除文件
-                    if (conversations[currentSessionId] && conversations[currentSessionId].files[fileId]) {
-                        delete conversations[currentSessionId].files[fileId];
-
-                        // 添加到会话历史
-                        conversations[currentSessionId].messages.push({
-                            role: "system",
-                            content: `用户移除了文件: ${result.filename} (ID: ${result.display_id})`
+        // 修改 removeFile 函数
+                async function removeFile(fileId) {
+                    try {
+                        // 发送删除请求 - 确保传递正确的session_id
+                        const response = await fetch(`/remove-file/${fileId}?session_id=${currentSessionId}`, {
+                            method: 'DELETE'
                         });
 
-                        // 保存会话
-                        saveConversations();
+                        const result = await response.json();
 
-                        // 更新文件列表
-                        updateFilesContainer();
+                        if (result.status === 'success') {
+                            // 从当前会话中移除文件
+                            if (conversations[currentSessionId] && conversations[currentSessionId].files[fileId]) {
+                                delete conversations[currentSessionId].files[fileId];
 
-                        // 显示成功消息
-                        addMessageToChat(`已移除文件: ${result.display_id}`, 'assistant');
+                                // 保存会话
+                                saveConversations();
+
+                                // 更新文件列表
+                                updateFilesContainer();
+
+                                // 显示成功消息
+                                addMessageToChat(`已移除文件: ${result.display_id || fileId}`, 'assistant');
+                            }
+                        } else {
+                            throw new Error(result.message || '文件移除失败');
+                        }
+                    } catch (error) {
+                        // 显示错误消息
+                        addMessageToChat(`文件移除失败: ${error.message}`, 'assistant');
                     }
-                } else {
-                    throw new Error(result.message || '文件移除失败');
                 }
-            } catch (error) {
-                addMessageToChat(`文件移除失败: ${error.message}`, 'assistant');
-            }
-        }
 
         // 发送消息函数
         async function sendMessage() {
