@@ -1,4 +1,3 @@
-```markdown
 # SophNet Intelligent Assistant
 
 A full-stack AI assistant application with file analysis capabilities, featuring a modern dark-themed UI and real-time chat functionality.
@@ -10,4 +9,3 @@ A full-stack AI assistant application with file analysis capabilities, featuring
 - **Session Management**: Create, star, and delete conversations
 - **Smart File Referencing**: Reference uploaded files in chat using IDs
 - **Responsive Design**: Works on both desktop and mobile devices
-```
