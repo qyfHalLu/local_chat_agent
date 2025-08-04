@@ -57,16 +57,20 @@ def find_free_port(start_port=5000, end_port=5050):
 def get_conversation(session_id):
     """获取或创建对话历史"""
     if session_id not in conversations:
+        print(f"[Server] Creating new conversation: {session_id}")
         conversations[session_id] = {
             "id": session_id,
             "title": "新会话",
             "messages": [
                 {"role": "system", "content": "你是伏秋杨的智能助手，负责分析用户提供的文件和图片内容。"}
             ],
-            "files": {},
+            "files": {},  # 确保初始化为字典
             "createdAt": time.time(),
             "starred": False
         }
+    else:
+        print(f"[Server] Using existing conversation: {session_id}")
+    
     return conversations[session_id]
 
 def extract_file_references(text):
@@ -359,11 +363,17 @@ def process_file(file, session_id, file_type):
 def remove_file(file_id):
     """从会话中移除文件"""
     session_id = request.args.get('session_id', 'default')
+    print(f"[Server] DELETE /remove-file/{file_id}?session_id={session_id}")
+    
     conversation = get_conversation(session_id)
     
+    # 打印所有文件ID以便调试
+    print(f"[Server] All files in session: {list(conversation['files'].keys())}")
+    
+    # 确保文件存在
     if file_id in conversation['files']:
-        # 获取文件信息
         file_info = conversation['files'][file_id]
+        print(f"[Server] Removing file: {file_info['filename']} (ID: {file_info['display_id']})")
         
         # 记录移除操作
         conversation['messages'].append({
@@ -375,7 +385,10 @@ def remove_file(file_id):
         del conversation['files'][file_id]
         conversation['lastActive'] = time.time()
         
-        # 返回成功消息并包含文件详细信息
+        # 打印移除后的文件列表
+        print(f"[Server] Files after removal: {list(conversation['files'].keys())}")
+        
+        # 返回成功消息
         return jsonify({
             'status': 'success',
             'message': f"文件 {file_info['display_id']} 已移除",
@@ -384,9 +397,12 @@ def remove_file(file_id):
             'file_id': file_id
         })
     
+    # 文件不存在时返回错误
+    error_msg = f'文件不存在: {file_id}'
+    print(f"[Server] {error_msg}")
     return jsonify({
         'status': 'error',
-        'message': f'文件不存在: {file_id}'
+        'message': error_msg
     }), 404
 
 @app.route('/chat', methods=['POST'])

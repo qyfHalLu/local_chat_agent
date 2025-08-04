@@ -410,7 +410,12 @@
             transition: var(--transition);
             position: relative;
             overflow: hidden;
+            pointer-events: auto !important;
         }
+
+        .file-item * {
+    pointer-events: auto !important;
+}
 
         .file-item::after {
             content: '';
@@ -464,6 +469,8 @@
         .file-remove-btn {
             margin-left: 10px;
             cursor: pointer;
+            z-index: 100; /* 确保按钮在最上层 */
+            position: relative; /* 确保z-index生效 */
             color: var(--text-secondary);
             transition: var(--transition);
         }
@@ -989,28 +996,163 @@
         // 会话数据管理
         let conversations = {};
 
-        // 初始化会话历史
-        function initConversations() {
-            const savedConversations = localStorage.getItem('conversations');
-            if (savedConversations) {
-                conversations = JSON.parse(savedConversations);
-                renderConversationsList();
-
-                // 检查当前会话是否仍然存在
-                if (!conversations[currentSessionId]) {
-                    const lastSession = Object.keys(conversations)[0];
-                    if (lastSession) {
-                        currentSessionId = lastSession;
-                    }
+        function addDebugButton() {
+                // 如果已经存在调试按钮，则更新它
+                let debugBtn = document.getElementById('debug-btn');
+                if (!debugBtn) {
+                    debugBtn = document.createElement('button');
+                    debugBtn.id = 'debug-btn';
+                    document.body.appendChild(debugBtn);
                 }
-            } else {
-                // 创建初始会话
-                createNewConversation();
+
+                // 设置调试按钮样式和内容
+                debugBtn.textContent = 'DEBUG: Remove All Files';
+                debugBtn.style.position = 'fixed';
+                debugBtn.style.bottom = '10px';
+                debugBtn.style.right = '10px';
+                debugBtn.style.zIndex = '10000'; // 确保在最顶层
+                debugBtn.style.padding = '10px';
+                debugBtn.style.background = '#ff206e';
+                debugBtn.style.color = 'white';
+                debugBtn.style.border = 'none';
+                debugBtn.style.borderRadius = '5px';
+                debugBtn.style.cursor = 'pointer';
+                debugBtn.style.fontWeight = 'bold';
+
+                // 添加点击事件
+                debugBtn.addEventListener('click', () => {
+                    console.log("[Debug] Remove All Files button clicked");
+
+                    const sessionFiles = conversations[currentSessionId].files;
+                    const fileIds = Object.keys(sessionFiles);
+
+                    if (fileIds.length === 0) {
+                        console.log("[Debug] No files to remove");
+                        alert('当前会话没有文件');
+                        return;
+                    }
+
+                    if (confirm(`确定要删除当前会话的${fileIds.length}个文件吗？`)) {
+                        fileIds.forEach(fileId => {
+                            console.log(`[Debug] Removing file: ${fileId}`);
+                            removeFile(fileId);
+                        });
+                    }
+                });
+
+                // 添加测试删除按钮点击的功能
+                const testButton = document.createElement('button');
+                testButton.textContent = 'TEST: Simulate Delete Click';
+                testButton.style.position = 'fixed';
+                testButton.style.bottom = '50px';
+                testButton.style.right = '10px';
+                testButton.style.zIndex = '10000';
+                testButton.style.padding = '10px';
+                testButton.style.background = '#3a86ff';
+                testButton.style.color = 'white';
+                testButton.style.border = 'none';
+                testButton.style.borderRadius = '5px';
+                testButton.style.cursor = 'pointer';
+
+                testButton.addEventListener('click', () => {
+                    console.log("[Test] Simulating delete button click");
+
+                    // 尝试找到第一个删除按钮
+                    const firstDeleteBtn = document.querySelector('.file-remove-btn');
+                    if (firstDeleteBtn) {
+                        console.log("[Test] Found delete button, simulating click");
+                        firstDeleteBtn.click();
+                    } else {
+                        console.log("[Test] No delete buttons found");
+                        alert('没有找到删除按钮');
+                    }
+                });
+
+                document.body.appendChild(testButton);
             }
 
-            renderChatArea();
-            updateFilesContainer();
-        }
+        // 初始化会话历史
+        function initConversations() {
+                console.log("[Client] Initializing conversations...");
+
+                // 从本地存储加载会话
+                const savedConversations = localStorage.getItem('conversations');
+                if (savedConversations) {
+                    console.log("[Client] Found saved conversations");
+                    conversations = JSON.parse(savedConversations);
+                    renderConversationsList();
+
+                    // 检查当前会话是否仍然存在
+                    if (!conversations[currentSessionId]) {
+                        console.log("[Client] Current session not found, switching to another");
+                        const lastSession = Object.keys(conversations)[0];
+                        if (lastSession) {
+                            currentSessionId = lastSession;
+                        } else {
+                            // 如果没有会话，则创建一个新的
+                            console.log("[Client] No sessions found, creating new one");
+                            createNewConversation();
+                        }
+                    }
+                } else {
+                    console.log("[Client] No saved conversations, creating new one");
+                    // 创建初始会话
+                    createNewConversation();
+                }
+
+                renderChatArea();
+                updateFilesContainer();
+
+                // 添加全局事件监听器（确保捕获所有删除按钮点击）
+                document.addEventListener('click', function (e) {
+                    // 检查是否是删除按钮
+                    const removeBtn = e.target.closest('.file-remove-btn');
+                    if (removeBtn) {
+                        console.log("[Global Event] Delete button clicked via event delegation");
+                        e.stopPropagation();
+
+                        const fileItem = removeBtn.closest('.file-item');
+                        if (fileItem && fileItem.dataset.fileId) {
+                            const fileId = fileItem.dataset.fileId;
+                            console.log(`[Global Event] Removing file: ${fileId}`);
+                            removeFile(fileId);
+                        }
+                    }
+
+                    // 检查是否是文件删除图标
+                    const removeIcon = e.target.closest('.fa-times');
+                    if (removeIcon && removeIcon.parentElement.classList.contains('file-remove-btn')) {
+                        console.log("[Global Event] Delete icon clicked via event delegation");
+                        e.stopPropagation();
+
+                        const removeBtn = removeIcon.parentElement;
+                        const fileItem = removeBtn.closest('.file-item');
+                        if (fileItem && fileItem.dataset.fileId) {
+                            const fileId = fileItem.dataset.fileId;
+                            console.log(`[Global Event] Removing file: ${fileId}`);
+                            removeFile(fileId);
+                        }
+                    }
+                });
+
+                // 添加点击调试器（记录所有点击事件）
+                // document.addEventListener('click', function (e) {
+                //     console.log("[Click Debugger] Clicked element:", e.target);
+                // });
+
+                // 添加调试按钮
+                // addDebugButton();
+
+                // 打印初始化完成信息
+                console.log(`[Client] Initialization complete for session: ${currentSessionId}`);
+
+                // 强制显示文件管理区（如果有文件）
+                const filesContainer = document.getElementById('files-container');
+                if (filesContainer.children.length > 0) {
+                    filesContainer.style.display = 'flex';
+                    filesContainer.classList.add('visible');
+                }
+            }
 
         // 创建新会话
         function createNewConversation() {
@@ -1174,23 +1316,28 @@
 
         // 更新文件容器
         function updateFilesContainer() {
-            const conversation = conversations[currentSessionId];
-            filesContainer.innerHTML = '';
+                const filesContainer = document.getElementById('files-container');
+                filesContainer.innerHTML = '';
 
-            if (conversation && Object.keys(conversation.files).length > 0) {
-                // 添加文件项
-                Object.values(conversation.files).forEach(file => {
-                    addFileToUI(file);
-                });
+                console.log(`[Client] Updating files container for session ${currentSessionId}`);
 
-                // 确保文件管理区可见
-                filesContainer.classList.add('visible');
-                filesContainer.style.display = 'flex'; // 强制显示
-            } else {
-                filesContainer.classList.remove('visible');
-                filesContainer.style.display = 'none'; // 确保隐藏
+                const conversation = conversations[currentSessionId];
+                if (conversation && Object.keys(conversation.files).length > 0) {
+                    console.log(`[Client] Found ${Object.keys(conversation.files).length} files in session`);
+
+                    Object.values(conversation.files).forEach(file => {
+                        console.log(`[Client] Adding file to UI: ${file.filename} (${file.file_id})`);
+                        addFileToUI(file);
+                    });
+
+                    filesContainer.classList.add('visible');
+                    filesContainer.style.display = 'flex';
+                } else {
+                    console.log('[Client] No files found in session');
+                    filesContainer.classList.remove('visible');
+                    filesContainer.style.display = 'none';
+                }
             }
-        }
 
         // 渲染聊天区域
         function renderChatArea() {
@@ -1235,41 +1382,63 @@
 
         // 添加文件到UI
         function addFileToUI(file) {
-            const filesContainer = document.getElementById('files-container');
+                console.log(`[Client] Adding file to UI: ${file.filename} (${file.file_id})`);
 
-            // 获取不带扩展名的文件名
-            const fileName = file.filename.replace(/\.[^/.]+$/, "");
+                const filesContainer = document.getElementById('files-container');
+                const fileName = file.filename.replace(/\.[^/.]+$/, "");
 
-            const fileItem = document.createElement('div');
-            fileItem.className = 'file-item';
-            fileItem.dataset.fileId = file.file_id;
+                // 创建文件项容器
+                const fileItem = document.createElement('div');
+                fileItem.className = 'file-item';
+                fileItem.dataset.fileId = file.file_id;  // 设置数据属性
 
-            fileItem.innerHTML = `
-                <i class="file-icon ${file.type === 'document' ? 'fas fa-file-alt' : 'fas fa-image'}"></i>
-                <span class="file-name">${fileName}</span>
-                <span class="file-id-tag">${file.display_id}</span>
-                <span class="file-remove-btn" title="移除文件">
-                    <i class="fas fa-times"></i>
-                </span>
-            `;
+                // 创建文件图标
+                const fileIcon = document.createElement('i');
+                fileIcon.className = `file-icon ${file.type === 'document' ? 'fas fa-file-alt' : 'fas fa-image'}`;
 
-            // 添加点击引用功能
-            fileItem.querySelector('.file-id-tag').addEventListener('click', () => {
-                messageInput.value = `${messageInput.value ? messageInput.value + ' ' : ''}${file.display_id}`;
-                messageInput.focus();
-            });
+                // 创建文件名显示
+                const fileNameSpan = document.createElement('span');
+                fileNameSpan.className = 'file-name';
+                fileNameSpan.textContent = fileName;
 
-            // 添加删除功能
-            const removeBtn = fileItem.querySelector('.file-remove-btn');
-            removeBtn.addEventListener('click', (e) => {
-                e.stopPropagation();
-                // 获取文件ID时确保使用正确的来源
-                const fileId = fileItem.dataset.fileId;
-                removeFile(fileId);
-            });
+                // 创建文件ID标签
+                const fileIdTag = document.createElement('span');
+                fileIdTag.className = 'file-id-tag';
+                fileIdTag.textContent = file.display_id;
 
-            filesContainer.appendChild(fileItem);
-        }
+                // 创建删除按钮
+                const removeBtn = document.createElement('span');
+                removeBtn.className = 'file-remove-btn';
+                removeBtn.title = '移除文件';
+
+                // 创建删除图标
+                const removeIcon = document.createElement('i');
+                removeIcon.className = 'fas fa-times';
+                removeBtn.appendChild(removeIcon);
+
+                // 添加自定义数据属性以便调试
+                removeBtn.dataset.debug = "delete-button";
+
+                // 构建文件项
+                fileItem.appendChild(fileIcon);
+                fileItem.appendChild(fileNameSpan);
+                fileItem.appendChild(fileIdTag);
+                fileItem.appendChild(removeBtn);
+
+                // 添加文件项到容器
+                filesContainer.appendChild(fileItem);
+
+                // 直接为删除按钮绑定事件
+                removeBtn.addEventListener('click', function (e) {
+                    e.stopPropagation();
+                    console.log(`[Direct Binding] Delete button clicked for file: ${file.file_id}`);
+                    removeFile(file.file_id);
+                });
+
+                // 打印添加结果
+                console.log(`[Client] File added to UI: ${file.filename}`);
+                console.log(`[Client] File container now has ${filesContainer.children.length} items`);
+            }
 
         // 上传文件处理
         async function handleMultiFileUpload(event) {
@@ -1337,35 +1506,66 @@
 
         // 移除文件
         // 修改 removeFile 函数
-                async function removeFile(fileId) {
-                    try {
-                        // 发送删除请求 - 确保传递正确的session_id
-                        const response = await fetch(`/remove-file/${fileId}?session_id=${currentSessionId}`, {
-                            method: 'DELETE'
-                        });
+       async function removeFile(fileId) {
+            console.log(`[Client] Starting file removal: ${fileId}`);
 
-                        const result = await response.json();
+            try {
+                // 尝试调用API删除
+                const response = await fetch(`/remove-file/${fileId}?session_id=${currentSessionId}`, {
+                    method: 'DELETE'
+                });
 
-                        if (result.status === 'success') {
-                            // 从当前会话中移除文件
-                            if (conversations[currentSessionId] && conversations[currentSessionId].files[fileId]) {
-                                delete conversations[currentSessionId].files[fileId];
+                if (!response.ok) {
+                    throw new Error(`API request failed with status ${response.status}`);
+                }
 
-                                // 保存会话
-                                saveConversations();
+                const result = await response.json();
+                console.log(`[Client] API response:`, result);
 
-                                // 更新文件列表
-                                updateFilesContainer();
+                if (result.status === 'success') {
+                    console.log(`[Client] File removed via API: ${fileId}`);
 
-                                // 显示成功消息
-                                addMessageToChat(`已移除文件: ${result.display_id || fileId}`, 'assistant');
-                            }
-                        } else {
-                            throw new Error(result.message || '文件移除失败');
-                        }
-                    } catch (error) {
-                        // 显示错误消息
-                        addMessageToChat(`文件移除失败: ${error.message}`, 'assistant');
+                    // 从当前会话中移除文件
+                    if (conversations[currentSessionId] && conversations[currentSessionId].files[fileId]) {
+                        delete conversations[currentSessionId].files[fileId];
+                        saveConversations();
+                        updateFilesContainer();
+
+                        // 显示成功消息
+                        addMessageToChat(`✅ 已移除文件: ${result.display_id}`, 'assistant');
+                    }
+                } else {
+                    throw new Error(result.message || 'API returned error');
+                }
+            } catch (error) {
+                console.error(`[Client] API removal failed: ${error.message}`);
+
+                // 即使API失败也尝试本地删除
+                if (conversations[currentSessionId] && conversations[currentSessionId].files[fileId]) {
+                    console.log(`[Client] Attempting local removal: ${fileId}`);
+
+                    const fileInfo = conversations[currentSessionId].files[fileId];
+                    delete conversations[currentSessionId].files[fileId];
+                    saveConversations();
+                    updateFilesContainer();
+
+                    // 显示成功消息
+                    addMessageToChat(`✅ 已本地移除文件: ${fileInfo.display_id}`, 'assistant');
+                    console.log(`[Client] Locally removed file: ${fileId}`);
+                } else {
+                    console.warn(`[Client] File not found in local data: ${fileId}`);
+                    addMessageToChat(`❌ 文件移除失败: 文件不存在`, 'assistant');
+                }
+            }
+        }
+
+            // 在全局添加手动删除函数
+                function forceRemoveFile(fileId) {
+                    if (conversations[currentSessionId] && conversations[currentSessionId].files[fileId]) {
+                        delete conversations[currentSessionId].files[fileId];
+                        saveConversations();
+                        updateFilesContainer();
+                        addMessageToChat(`✅ 已强制移除文件: ${fileId}`, 'assistant');
                     }
                 }
 
