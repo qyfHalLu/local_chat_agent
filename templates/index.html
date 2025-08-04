@@ -795,12 +795,12 @@
         function addFileUploadHints() {
             // 文件上传按钮提示
             const uploadBtn = document.querySelector('[for="file-upload"]');
-            uploadBtn.addEventListener('mouseover', () => {
-                const hint = document.createElement('div');
-                hint.className = 'file-hint-tooltip';
-                // hint.textContent = '支持文档: PDF, DOC, DOCX, XLS, XLSX, PPT, PPTX, TXT\n支持图片: JPG, JPEG, PNG, BMP, GIF';
-                uploadBtn.appendChild(hint);
-            });
+            // uploadBtn.addEventListener('mouseover', () => {
+            //     const hint = document.createElement('div');
+            //     hint.className = 'file-hint-tooltip';
+            //     hint.textContent = '支持文档: PDF, DOC, DOCX, XLS, XLSX, PPT, PPTX, TXT\n支持图片: JPG, JPEG, PNG, BMP, GIF';
+            //     uploadBtn.appendChild(hint);
+            // });
 
             uploadBtn.addEventListener('mouseout', () => {
                 const tooltip = uploadBtn.querySelector('.file-hint-tooltip');
