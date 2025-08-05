@@ -36,6 +36,12 @@ SOPHNET_PROJECT_ID = os.getenv("SOPHNET_PROJECT_ID")
 DOC_PARSE_EASYLLM_ID = os.getenv("DOC_PARSE_EASYLLM_ID")
 IMAGE_OCR_EASYLLM_ID = os.getenv("IMAGE_OCR_EASYLLM_ID")
 
+# 支持的模型列表
+SUPPORTED_MODELS = {
+    "DeepSeek-V3-Fast": "DeepSeek-V3-Fast:1xh4CuJsBMrlAvdLBAZYfC",
+    "DeepSeek-R1": "DeepSeek-R1:T0MH1jOlz0LKniEZwSL57"
+}
+
 # 支持的文件类型
 SUPPORTED_DOC_TYPES = ['.pdf', '.docx', '.doc', '.xlsx', '.xls', '.txt', '.pptx']
 SUPPORTED_IMAGE_TYPES = ['.jpg', '.jpeg', '.png', '.bmp', '.gif']
@@ -45,7 +51,7 @@ conversations = {}
 
 # 默认设置值
 DEFAULT_SETTINGS = {
-    "model": "DeepSeek-V3-Fast:1xh4CuJsBMrlAvdLBAZYfC",
+    "model": SUPPORTED_MODELS["DeepSeek-V3-Fast"],
     "system_prompt": "你是专属智能助手，负责回答用户的任何问题，分析用户提供的文件和图片内容。",
     "max_tokens": 16384
 }
@@ -425,6 +431,14 @@ def chat():
     system_prompt = data.get('system_prompt', DEFAULT_SETTINGS["system_prompt"])
     max_tokens = data.get('max_tokens', DEFAULT_SETTINGS["max_tokens"])
     
+    # 验证模型是否有效
+    if model not in SUPPORTED_MODELS.values():
+        logging.error(f"无效的模型选择: {model}")
+        return jsonify({
+            'error': '无效的模型选择',
+            'supported_models': list(SUPPORTED_MODELS.values())
+        }), 400
+    
     # 验证max_tokens范围
     max_tokens = max(256, min(int(max_tokens), 16384))
     
@@ -523,7 +537,7 @@ def chat():
                     for char in content:
                         # 添加轻微延迟以模拟打字机效果
                         time.sleep(0.005)
-                        yield f"data: {json.dumps({'char': char})}\n\n"
+                        yield f"data: {json.dumps({'char': char, 'model': model})}\n\n"
             
             # 整个流式响应完成后，将完整的助手回复添加到消息历史中
             conversation['messages'].append({
@@ -667,7 +681,7 @@ if __name__ == '__main__':
         port = 5000
         print("⚠️ 未找到可用端口，尝试使用5000端口")
     
-    print(f"🚀🚀🚀🚀 服务器将在端口 {port} 启动")
+    print(f"🚀 服务器将在端口 {port} 启动")
     
     # 在独立线程中打开浏览器
     threading.Thread(target=start_browser, args=(port,)).start()
