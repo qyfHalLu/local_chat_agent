@@ -38,8 +38,10 @@ IMAGE_OCR_EASYLLM_ID = os.getenv("IMAGE_OCR_EASYLLM_ID")
 
 # 支持的模型列表
 SUPPORTED_MODELS = {
-    "DeepSeek-V3-Fast": "DeepSeek-V3-Fast:1xh4CuJsBMrlAvdLBAZYfC",
-    "DeepSeek-R1": "DeepSeek-R1:T0MH1jOlz0LKniEZwSL57"
+    "DeepSeek-V3-Fast": "DeepSeek-V3-Fast",
+    "DeepSeek-R1": "DeepSeek-R1-0528",
+    "DeepSeek-V3-Fast-web": "DeepSeek-V3-Fast:1xh4CuJsBMrlAvdLBAZYfC",
+    "DeepSeek-R1-web": "DeepSeek-R1:T0MH1jOlz0LKniEZwSL57"
 }
 
 # 支持的文件类型
