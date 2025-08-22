@@ -41,7 +41,9 @@ SUPPORTED_MODELS = {
     "DeepSeek-V3-Fast": "DeepSeek-V3-Fast",
     "DeepSeek-R1": "DeepSeek-R1-0528",
     "DeepSeek-V3-Fast-web": "DeepSeek-V3-Fast:1xh4CuJsBMrlAvdLBAZYfC",
-    "DeepSeek-R1-web": "DeepSeek-R1:T0MH1jOlz0LKniEZwSL57"
+    "DeepSeek-R1-web": "DeepSeek-R1:T0MH1jOlz0LKniEZwSL57",
+    "DeepSeek-V3.1":"DeepSeek-V3.1",
+    "DeepSeek-V3.1-web": "DeepSeek-V3.1:3AQ7K15fkmmCnClUfQ4RLn"
 }
 
 # 支持的文件类型
