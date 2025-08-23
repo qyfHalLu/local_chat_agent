@@ -972,7 +972,6 @@
             border-color: var(--primary);
             color: var(--primary);
         }
-
     </style>
 </head>
 
@@ -1010,9 +1009,11 @@
                     <select id="model-select">
                         <option value="DeepSeek-V3-Fast">DeepSeek V3 Fast</option>
                         <option value="DeepSeek-V3.1">DeepSeek V3.1</option>
-                        <option value="DeepSeek-V3.1:3AQ7K15fkmmCnClUfQ4RLn">DeepSeek V3.1（联网）</option>
                         <option value="DeepSeek-R1-0528">DeepSeek R1 0528</option>
+                        <option value="Kimi-K2">Kimi-K2</option>
+                        <option value="GLM-4.5">GLM-4.5</option>
                         <option value="DeepSeek-V3-Fast:1xh4CuJsBMrlAvdLBAZYfC">DeepSeek V3 Fast（联网）</option>
+                        <option value="DeepSeek-V3.1:3AQ7K15fkmmCnClUfQ4RLn">DeepSeek V3.1（联网）</option>
                         <option value="DeepSeek-R1:T0MH1jOlz0LKniEZwSL57">DeepSeek R1 0528（联网）</option>
                     </select>
                 </div>
@@ -1020,7 +1021,7 @@
                 <!-- 系统提示设置 -->
                 <div class="setting-item">
                     <label for="system-prompt">系统提示</label>
-                    <textarea id="system-prompt" placeholder="设置AI助手的行为和角色">你是专属智能助手，负责回答客户的所有问题。</textarea>
+                    <textarea id="system-prompt" placeholder="设置AI助手的行为和角色">你是专属智能助手，负责以专业且温和的语气回答客户的所有问题。</textarea>
                 </div>
 
                 <!-- Max Tokens设置 -->
@@ -1090,12 +1091,12 @@
                 <span class="dot"></span>
                 <span class="dot"></span>
             </div>
-        
+
             <!-- 添加的清空对话按钮 -->
             <button id="clear-btn" class="clear-btn" title="清空对话">
                 <i class="fas fa-trash"></i>
             </button>
-        
+
             <!-- 文件上传按钮组 -->
             <div class="file-upload-group">
                 <label for="file-upload" class="file-upload-btn" title="上传文件和图片">
@@ -1104,272 +1105,272 @@
                         style="display:none">
                 </label>
             </div>
-        
+
             <input type="text" id="message-input" placeholder="请输入消息" autocomplete="off">
-        
+
             <button id="send-btn">
                 <i id="send-icon" class="fas fa-paper-plane"></i>
             </button>
         </div>
 
-    <script>
-        const chatContainer = document.getElementById('chat-container');
-        const messageInput = document.getElementById('message-input');
-        const sendBtn = document.getElementById('send-btn');
-        const sendIcon = document.getElementById('send-icon');
-        const typingIndicator = document.getElementById('typing-indicator');
-        const starredConversations = document.getElementById('starred-conversations');
-        const allConversations = document.getElementById('all-conversations');
-        const newChatBtn = document.getElementById('new-chat-btn');
-        const chatInfo = document.getElementById('chat-info');
-        const fileUpload = document.getElementById('file-upload');
-        const filesContainer = document.getElementById('files-container');
-        const clearBtn = document.getElementById('clear-btn');
+        <script>
+            const chatContainer = document.getElementById('chat-container');
+            const messageInput = document.getElementById('message-input');
+            const sendBtn = document.getElementById('send-btn');
+            const sendIcon = document.getElementById('send-icon');
+            const typingIndicator = document.getElementById('typing-indicator');
+            const starredConversations = document.getElementById('starred-conversations');
+            const allConversations = document.getElementById('all-conversations');
+            const newChatBtn = document.getElementById('new-chat-btn');
+            const chatInfo = document.getElementById('chat-info');
+            const fileUpload = document.getElementById('file-upload');
+            const filesContainer = document.getElementById('files-container');
+            const clearBtn = document.getElementById('clear-btn');
 
-        // 获取设置UI元素
-        const modelSelect = document.getElementById('model-select');
-        const systemPrompt = document.getElementById('system-prompt');
-        const maxTokensSlider = document.getElementById('max-tokens');
-        const tokenValue = document.getElementById('token-value');
+            // 获取设置UI元素
+            const modelSelect = document.getElementById('model-select');
+            const systemPrompt = document.getElementById('system-prompt');
+            const maxTokensSlider = document.getElementById('max-tokens');
+            const tokenValue = document.getElementById('token-value');
 
-        // 生成唯一会话ID
-        let currentSessionId = 'session_' + Date.now();
-        let currentAbortController = null;
+            // 生成唯一会话ID
+            let currentSessionId = 'session_' + Date.now();
+            let currentAbortController = null;
 
-        // 当前会话的文件列表
-        let currentFiles = [];
+            // 当前会话的文件列表
+            let currentFiles = [];
 
-        // 当前是否正在处理回复
-        let isProcessing = false;
+            // 当前是否正在处理回复
+            let isProcessing = false;
 
-        // 配置Marked.js
-        marked.setOptions({
-            breaks: true,
-            gfm: true,
-            headerIds: false
-        });
+            // 配置Marked.js
+            marked.setOptions({
+                breaks: true,
+                gfm: true,
+                headerIds: false
+            });
 
-        // 会话数据管理
-        let conversations = {};
+            // 会话数据管理
+            let conversations = {};
 
-        // 默认设置值
-        const DEFAULT_SETTINGS = {
-            model: "DeepSeek-V3-Fast",
-            systemPrompt: "",
-            maxTokens: 1024
-        };
+            // 默认设置值
+            const DEFAULT_SETTINGS = {
+                model: "DeepSeek-V3-Fast",
+                systemPrompt: "",
+                maxTokens: 1024
+            };
 
-        // 初始化会话历史
-        function initConversations() {
-            console.log("[Client] Initializing conversations...");
+            // 初始化会话历史
+            function initConversations() {
+                console.log("[Client] Initializing conversations...");
 
-            // 从本地存储加载会话
-            const savedConversations = localStorage.getItem('conversations');
-            if (savedConversations) {
-                console.log("[Client] Found saved conversations");
-                conversations = JSON.parse(savedConversations);
+                // 从本地存储加载会话
+                const savedConversations = localStorage.getItem('conversations');
+                if (savedConversations) {
+                    console.log("[Client] Found saved conversations");
+                    conversations = JSON.parse(savedConversations);
+                    renderConversationsList();
+
+                    // 检查当前会话是否仍然存在
+                    if (!conversations[currentSessionId]) {
+                        console.log("[Client] Current session not found, switching to another");
+                        const lastSession = Object.keys(conversations)[0];
+                        if (lastSession) {
+                            currentSessionId = lastSession;
+                        } else {
+                            // 如果没有会话，则创建一个新的
+                            console.log("[Client] No sessions found, creating new one");
+                            createNewConversation();
+                        }
+                    }
+                } else {
+                    console.log("[Client] No saved conversations, creating new one");
+                    // 创建初始会话
+                    createNewConversation();
+                }
+
+                renderChatArea();
+                updateFilesContainer();
+
+                // 添加全局事件监听器
+                document.addEventListener('click', function (e) {
+                    const removeBtn = e.target.closest('.file-remove-btn');
+                    if (removeBtn) {
+                        e.stopPropagation();
+                        const fileItem = removeBtn.closest('.file-item');
+                        if (fileItem && fileItem.dataset.fileId) {
+                            const fileId = fileItem.dataset.fileId;
+                            removeFile(fileId);
+                        }
+                    }
+                });
+
+                // 添加设置事件监听
+                modelSelect.addEventListener('change', saveSettings);
+                systemPrompt.addEventListener('change', saveSettings);
+                maxTokensSlider.addEventListener('input', function () {
+                    tokenValue.textContent = this.value;
+                    saveSettings();
+                });
+
+                console.log(`[Client] Initialization complete for session: ${currentSessionId}`);
+            }
+
+
+            // 清空对话功能
+            function clearConversation() {
+                // if (!confirm('确定要清空当前对话吗？此操作不可恢复。')) return;
+
+                const conversation = conversations[currentSessionId];
+                if (conversation) {
+                    // 保留第一条欢迎消息
+                    conversation.messages = [conversation.messages[0]];
+
+                    // 保留文件
+                    conversation.files = { ...conversation.files };
+
+                    // 保存会话
+                    saveConversations();
+
+                    // 重新渲染聊天区域
+                    renderChatArea();
+
+                    // 更新文件容器
+                    updateFilesContainer();
+
+
+                }
+            }
+
+            // 添加事件监听
+            clearBtn.addEventListener('click', clearConversation);
+
+
+            // 创建新会话
+            function createNewConversation() {
+                currentSessionId = 'session_' + Date.now();
+                conversations[currentSessionId] = {
+                    id: currentSessionId,
+                    title: '新会话',
+                    messages: [
+                        {
+                            role: "assistant",
+                            content: "您好！我是您的智能助手，有什么可以帮您的吗？"
+                        }
+                    ],
+                    files: {},
+                    settings: { ...DEFAULT_SETTINGS },
+                    createdAt: Date.now(),
+                    starred: false
+                };
+
+                // 清除当前文件列表
+                currentFiles = [];
+                filesContainer.innerHTML = '';
+                filesContainer.style.display = 'none';
+
+                // 保存到本地存储
+                saveConversations();
+
+                // 渲染会话列表
                 renderConversationsList();
 
-                // 检查当前会话是否仍然存在
-                if (!conversations[currentSessionId]) {
-                    console.log("[Client] Current session not found, switching to another");
-                    const lastSession = Object.keys(conversations)[0];
-                    if (lastSession) {
-                        currentSessionId = lastSession;
-                    } else {
-                        // 如果没有会话，则创建一个新的
-                        console.log("[Client] No sessions found, creating new one");
-                        createNewConversation();
-                    }
-                }
-            } else {
-                console.log("[Client] No saved conversations, creating new one");
-                // 创建初始会话
-                createNewConversation();
+                // 渲染聊天区域
+                renderChatArea();
             }
 
-            renderChatArea();
-            updateFilesContainer();
+            // 保存所有会话
+            function saveConversations() {
+                localStorage.setItem('conversations', JSON.stringify(conversations));
+            }
 
-            // 添加全局事件监听器
-            document.addEventListener('click', function (e) {
-                const removeBtn = e.target.closest('.file-remove-btn');
-                if (removeBtn) {
-                    e.stopPropagation();
-                    const fileItem = removeBtn.closest('.file-item');
-                    if (fileItem && fileItem.dataset.fileId) {
-                        const fileId = fileItem.dataset.fileId;
-                        removeFile(fileId);
-                    }
+            // 保存设置
+            function saveSettings() {
+                const conversation = conversations[currentSessionId];
+                if (!conversation) return;
+
+                conversation.settings = {
+                    model: modelSelect.value,
+                    systemPrompt: systemPrompt.value,
+                    maxTokens: parseInt(maxTokensSlider.value)
+                };
+
+                saveConversations();
+                console.log('设置已保存:', conversation.settings);
+            }
+
+            // 加载设置
+            function loadSettings() {
+                const conversation = conversations[currentSessionId];
+                if (conversation && conversation.settings) {
+                    modelSelect.value = conversation.settings.model;
+                    systemPrompt.value = conversation.settings.systemPrompt;
+                    maxTokensSlider.value = conversation.settings.maxTokens;
+                    tokenValue.textContent = conversation.settings.maxTokens;
                 }
-            });
+            }
 
-            // 添加设置事件监听
-            modelSelect.addEventListener('change', saveSettings);
-            systemPrompt.addEventListener('change', saveSettings);
-            maxTokensSlider.addEventListener('input', function () {
-                tokenValue.textContent = this.value;
-                saveSettings();
-            });
-
-            console.log(`[Client] Initialization complete for session: ${currentSessionId}`);
-        }
-
-
-    // 清空对话功能
-    function clearConversation() {
-        // if (!confirm('确定要清空当前对话吗？此操作不可恢复。')) return;
-
-        const conversation = conversations[currentSessionId];
-        if (conversation) {
-            // 保留第一条欢迎消息
-            conversation.messages = [conversation.messages[0]];
-
-            // 保留文件
-            conversation.files = { ...conversation.files };
-
-            // 保存会话
-            saveConversations();
-
-            // 重新渲染聊天区域
-            renderChatArea();
-
-            // 更新文件容器
-            updateFilesContainer();
-
-          
-        }
-    }
-
-    // 添加事件监听
-    clearBtn.addEventListener('click', clearConversation);
-
-
-        // 创建新会话
-        function createNewConversation() {
-            currentSessionId = 'session_' + Date.now();
-            conversations[currentSessionId] = {
-                id: currentSessionId,
-                title: '新会话',
-                messages: [
-                    {
-                        role: "assistant",
-                        content: "您好！我是您的智能助手，有什么可以帮您的吗？"
-                    }
-                ],
-                files: {},
-                settings: { ...DEFAULT_SETTINGS },
-                createdAt: Date.now(),
-                starred: false
-            };
-
-            // 清除当前文件列表
-            currentFiles = [];
-            filesContainer.innerHTML = '';
-            filesContainer.style.display = 'none';
-
-            // 保存到本地存储
-            saveConversations();
+            // 更新发送按钮状态
+            function updateSendButtonState() {
+                if (isProcessing) {
+                    sendIcon.className = 'fas fa-stop-circle';
+                    sendBtn.title = "停止回复";
+                } else {
+                    sendIcon.className = 'fas fa-paper-plane';
+                    sendBtn.title = "发送消息";
+                }
+            }
 
             // 渲染会话列表
-            renderConversationsList();
+            function renderConversationsList() {
+                starredConversations.innerHTML = '';
+                allConversations.innerHTML = '';
 
-            // 渲染聊天区域
-            renderChatArea();
-        }
+                // 分别存储收藏的会话和所有会话
+                let starredItems = [];
+                let allItems = [];
 
-        // 保存所有会话
-        function saveConversations() {
-            localStorage.setItem('conversations', JSON.stringify(conversations));
-        }
-
-        // 保存设置
-        function saveSettings() {
-            const conversation = conversations[currentSessionId];
-            if (!conversation) return;
-
-            conversation.settings = {
-                model: modelSelect.value,
-                systemPrompt: systemPrompt.value,
-                maxTokens: parseInt(maxTokensSlider.value)
-            };
-
-            saveConversations();
-            console.log('设置已保存:', conversation.settings);
-        }
-
-        // 加载设置
-        function loadSettings() {
-            const conversation = conversations[currentSessionId];
-            if (conversation && conversation.settings) {
-                modelSelect.value = conversation.settings.model;
-                systemPrompt.value = conversation.settings.systemPrompt;
-                maxTokensSlider.value = conversation.settings.maxTokens;
-                tokenValue.textContent = conversation.settings.maxTokens;
-            }
-        }
-
-        // 更新发送按钮状态
-        function updateSendButtonState() {
-            if (isProcessing) {
-                sendIcon.className = 'fas fa-stop-circle';
-                sendBtn.title = "停止回复";
-            } else {
-                sendIcon.className = 'fas fa-paper-plane';
-                sendBtn.title = "发送消息";
-            }
-        }
-
-        // 渲染会话列表
-        function renderConversationsList() {
-            starredConversations.innerHTML = '';
-            allConversations.innerHTML = '';
-
-            // 分别存储收藏的会话和所有会话
-            let starredItems = [];
-            let allItems = [];
-
-            Object.values(conversations).forEach(conv => {
-                if (conv.starred) {
-                    starredItems.push(conv);
-                }
-                allItems.push(conv);
-            });
-
-            // 渲染收藏会话
-            if (starredItems.length > 0) {
-                starredItems.forEach(conv => {
-                    createConversationItem(conv, starredConversations);
+                Object.values(conversations).forEach(conv => {
+                    if (conv.starred) {
+                        starredItems.push(conv);
+                    }
+                    allItems.push(conv);
                 });
-            } else {
-                starredConversations.innerHTML = `
+
+                // 渲染收藏会话
+                if (starredItems.length > 0) {
+                    starredItems.forEach(conv => {
+                        createConversationItem(conv, starredConversations);
+                    });
+                } else {
+                    starredConversations.innerHTML = `
                     <div class="empty-state">
                         <p>暂无收藏</p>
                     </div>
                 `;
-            }
+                }
 
-            // 渲染所有会话
-            if (allItems.length > 0) {
-                allItems.forEach(conv => {
-                    createConversationItem(conv, allConversations);
-                });
-            } else {
-                allConversations.innerHTML = `
+                // 渲染所有会话
+                if (allItems.length > 0) {
+                    allItems.forEach(conv => {
+                        createConversationItem(conv, allConversations);
+                    });
+                } else {
+                    allConversations.innerHTML = `
                     <div class="empty-state">
                         <p>暂无聊天记录</p>
                     </div>
                 `;
+                }
             }
-        }
 
-        // 创建会话项
-        function createConversationItem(conversation, container) {
-            const isActive = conversation.id === currentSessionId;
-            const item = document.createElement('div');
-            item.className = `conversation-item ${isActive ? 'active' : ''}`;
+            // 创建会话项
+            function createConversationItem(conversation, container) {
+                const isActive = conversation.id === currentSessionId;
+                const item = document.createElement('div');
+                item.className = `conversation-item ${isActive ? 'active' : ''}`;
 
-            item.innerHTML = `
+                item.innerHTML = `
                 <div class="conversation-title">${conversation.title}</div>
                 <div class="conversation-actions">
                     <button class="action-btn star-btn ${conversation.starred ? 'starred' : ''}" 
@@ -1382,483 +1383,483 @@
                 </div>
             `;
 
-            // 点击会话项切换会话
-            item.addEventListener('click', (e) => {
-                if (!e.target.closest('.action-btn')) {
-                    currentSessionId = conversation.id;
+                // 点击会话项切换会话
+                item.addEventListener('click', (e) => {
+                    if (!e.target.closest('.action-btn')) {
+                        currentSessionId = conversation.id;
+                        renderConversationsList();
+                        renderChatArea();
+                        loadSettings(); // 加载当前会话的设置
+
+                        // 更新文件列表
+                        updateFilesContainer();
+                    }
+                });
+
+                // 添加收藏按钮事件
+                const starBtn = item.querySelector('.star-btn');
+                starBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    toggleStarConversation(conversation.id);
+                });
+
+                // 添加删除按钮事件
+                const deleteBtn = item.querySelector('.delete-btn');
+                deleteBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    deleteConversation(conversation.id);
+                });
+
+                container.appendChild(item);
+            }
+
+            // 切换会话收藏状态
+            function toggleStarConversation(conversationId) {
+                if (conversations[conversationId]) {
+                    conversations[conversationId].starred = !conversations[conversationId].starred;
+                    saveConversations();
+                    renderConversationsList();
+                }
+            }
+
+            // 删除会话
+            function deleteConversation(conversationId) {
+                if (confirm('确定要删除此会话吗？此操作不可恢复。')) {
+                    if (conversationId === currentSessionId) {
+                        // 如果删除的是当前会话，切换到另一个会话
+                        const otherSessions = Object.keys(conversations).filter(id => id !== conversationId);
+                        if (otherSessions.length > 0) {
+                            currentSessionId = otherSessions[0];
+                        } else {
+                            createNewConversation();
+                        }
+                    }
+
+                    delete conversations[conversationId];
+                    saveConversations();
                     renderConversationsList();
                     renderChatArea();
-                    loadSettings(); // 加载当前会话的设置
 
                     // 更新文件列表
                     updateFilesContainer();
                 }
-            });
-
-            // 添加收藏按钮事件
-            const starBtn = item.querySelector('.star-btn');
-            starBtn.addEventListener('click', (e) => {
-                e.stopPropagation();
-                toggleStarConversation(conversation.id);
-            });
-
-            // 添加删除按钮事件
-            const deleteBtn = item.querySelector('.delete-btn');
-            deleteBtn.addEventListener('click', (e) => {
-                e.stopPropagation();
-                deleteConversation(conversation.id);
-            });
-
-            container.appendChild(item);
-        }
-
-        // 切换会话收藏状态
-        function toggleStarConversation(conversationId) {
-            if (conversations[conversationId]) {
-                conversations[conversationId].starred = !conversations[conversationId].starred;
-                saveConversations();
-                renderConversationsList();
             }
-        }
 
-        // 删除会话
-        function deleteConversation(conversationId) {
-            if (confirm('确定要删除此会话吗？此操作不可恢复。')) {
-                if (conversationId === currentSessionId) {
-                    // 如果删除的是当前会话，切换到另一个会话
-                    const otherSessions = Object.keys(conversations).filter(id => id !== conversationId);
-                    if (otherSessions.length > 0) {
-                        currentSessionId = otherSessions[0];
-                    } else {
-                        createNewConversation();
-                    }
+            // 更新文件容器
+            function updateFilesContainer() {
+                const filesContainer = document.getElementById('files-container');
+                filesContainer.innerHTML = '';
+
+                const conversation = conversations[currentSessionId];
+                if (conversation && Object.keys(conversation.files).length > 0) {
+                    Object.values(conversation.files).forEach(file => {
+                        addFileToUI(file);
+                    });
+
+                    filesContainer.classList.add('visible');
+                    filesContainer.style.display = 'flex';
+                } else {
+                    filesContainer.classList.remove('visible');
+                    filesContainer.style.display = 'none';
+                }
+            }
+
+            // 渲染聊天区域
+            function renderChatArea() {
+                const chatContainer = document.getElementById('chat-container');
+                chatContainer.innerHTML = '';
+
+                const conversation = conversations[currentSessionId];
+                if (conversation) {
+                    chatInfo.textContent = conversation.title;
+
+                    conversation.messages.forEach(msg => {
+                        if (msg.role === 'system') return;
+
+                        const messageElement = document.createElement('div');
+                        messageElement.className = `message ${msg.role}-message`;
+
+                        if (msg.isFile) {
+                            try {
+                                messageElement.innerHTML = msg.file_info.preview_html;
+                            } catch (e) {
+                                messageElement.textContent = "文件内容显示错误";
+                            }
+                        } else if (msg.role === 'assistant') {
+                            messageElement.innerHTML = marked.parse(msg.content);
+                        } else {
+                            messageElement.textContent = msg.content;
+                        }
+
+                        chatContainer.appendChild(messageElement);
+                    });
                 }
 
-                delete conversations[conversationId];
-                saveConversations();
-                renderConversationsList();
-                renderChatArea();
+                // 加载当前会话的设置
+                loadSettings();
+
+                // 滚动到底部
+                setTimeout(() => {
+                    chatContainer.scrollTop = chatContainer.scrollHeight;
+                }, 100);
 
                 // 更新文件列表
                 updateFilesContainer();
             }
-        }
 
-        // 更新文件容器
-        function updateFilesContainer() {
-            const filesContainer = document.getElementById('files-container');
-            filesContainer.innerHTML = '';
+            // 添加文件到UI
+            function addFileToUI(file) {
+                const filesContainer = document.getElementById('files-container');
+                const fileName = file.filename.replace(/\.[^/.]+$/, "");
 
-            const conversation = conversations[currentSessionId];
-            if (conversation && Object.keys(conversation.files).length > 0) {
-                Object.values(conversation.files).forEach(file => {
-                    addFileToUI(file);
-                });
+                // 创建文件项容器
+                const fileItem = document.createElement('div');
+                fileItem.className = 'file-item';
+                fileItem.dataset.fileId = file.file_id;
 
-                filesContainer.classList.add('visible');
-                filesContainer.style.display = 'flex';
-            } else {
-                filesContainer.classList.remove('visible');
-                filesContainer.style.display = 'none';
+                // 创建文件图标
+                const fileIcon = document.createElement('i');
+                fileIcon.className = `file-icon ${file.type === 'document' ? 'fas fa-file-alt' : 'fas fa-image'}`;
+
+                // 创建文件名显示
+                const fileNameSpan = document.createElement('span');
+                fileNameSpan.className = 'file-name';
+                fileNameSpan.textContent = fileName;
+
+                // 创建文件ID标签
+                const fileIdTag = document.createElement('span');
+                fileIdTag.className = 'file-id-tag';
+                fileIdTag.textContent = file.display_id;
+
+                // 创建删除按钮
+                const removeBtn = document.createElement('span');
+                removeBtn.className = 'file-remove-btn';
+                removeBtn.title = '移除文件';
+
+                // 创建删除图标
+                const removeIcon = document.createElement('i');
+                removeIcon.className = 'fas fa-times';
+                removeBtn.appendChild(removeIcon);
+
+                // 构建文件项
+                fileItem.appendChild(fileIcon);
+                fileItem.appendChild(fileNameSpan);
+                fileItem.appendChild(fileIdTag);
+                fileItem.appendChild(removeBtn);
+
+                // 添加文件项到容器
+                filesContainer.appendChild(fileItem);
             }
-        }
 
-        // 渲染聊天区域
-        function renderChatArea() {
-            const chatContainer = document.getElementById('chat-container');
-            chatContainer.innerHTML = '';
+            // 上传文件处理
+            async function handleMultiFileUpload(event) {
+                const files = event.target.files;
+                if (!files || files.length === 0) return;
 
-            const conversation = conversations[currentSessionId];
-            if (conversation) {
-                chatInfo.textContent = conversation.title;
+                const originalButtonText = sendBtn.innerHTML;
+                sendBtn.innerHTML = `<i class="fas fa-spinner fa-spin"></i>`;
+                sendBtn.disabled = true;
 
-                conversation.messages.forEach(msg => {
-                    if (msg.role === 'system') return;
+                try {
+                    // 创建FormData对象
+                    const formData = new FormData();
+                    formData.append('session_id', currentSessionId);
 
-                    const messageElement = document.createElement('div');
-                    messageElement.className = `message ${msg.role}-message`;
-
-                    if (msg.isFile) {
-                        try {
-                            messageElement.innerHTML = msg.file_info.preview_html;
-                        } catch (e) {
-                            messageElement.textContent = "文件内容显示错误";
-                        }
-                    } else if (msg.role === 'assistant') {
-                        messageElement.innerHTML = marked.parse(msg.content);
-                    } else {
-                        messageElement.textContent = msg.content;
+                    // 添加所有文件
+                    for (let i = 0; i < files.length; i++) {
+                        formData.append('files[]', files[i]);
                     }
 
-                    chatContainer.appendChild(messageElement);
-                });
-            }
-
-            // 加载当前会话的设置
-            loadSettings();
-
-            // 滚动到底部
-            setTimeout(() => {
-                chatContainer.scrollTop = chatContainer.scrollHeight;
-            }, 100);
-
-            // 更新文件列表
-            updateFilesContainer();
-        }
-
-        // 添加文件到UI
-        function addFileToUI(file) {
-            const filesContainer = document.getElementById('files-container');
-            const fileName = file.filename.replace(/\.[^/.]+$/, "");
-
-            // 创建文件项容器
-            const fileItem = document.createElement('div');
-            fileItem.className = 'file-item';
-            fileItem.dataset.fileId = file.file_id;
-
-            // 创建文件图标
-            const fileIcon = document.createElement('i');
-            fileIcon.className = `file-icon ${file.type === 'document' ? 'fas fa-file-alt' : 'fas fa-image'}`;
-
-            // 创建文件名显示
-            const fileNameSpan = document.createElement('span');
-            fileNameSpan.className = 'file-name';
-            fileNameSpan.textContent = fileName;
-
-            // 创建文件ID标签
-            const fileIdTag = document.createElement('span');
-            fileIdTag.className = 'file-id-tag';
-            fileIdTag.textContent = file.display_id;
-
-            // 创建删除按钮
-            const removeBtn = document.createElement('span');
-            removeBtn.className = 'file-remove-btn';
-            removeBtn.title = '移除文件';
-
-            // 创建删除图标
-            const removeIcon = document.createElement('i');
-            removeIcon.className = 'fas fa-times';
-            removeBtn.appendChild(removeIcon);
-
-            // 构建文件项
-            fileItem.appendChild(fileIcon);
-            fileItem.appendChild(fileNameSpan);
-            fileItem.appendChild(fileIdTag);
-            fileItem.appendChild(removeBtn);
-
-            // 添加文件项到容器
-            filesContainer.appendChild(fileItem);
-        }
-
-        // 上传文件处理
-        async function handleMultiFileUpload(event) {
-            const files = event.target.files;
-            if (!files || files.length === 0) return;
-
-            const originalButtonText = sendBtn.innerHTML;
-            sendBtn.innerHTML = `<i class="fas fa-spinner fa-spin"></i>`;
-            sendBtn.disabled = true;
-
-            try {
-                // 创建FormData对象
-                const formData = new FormData();
-                formData.append('session_id', currentSessionId);
-
-                // 添加所有文件
-                for (let i = 0; i < files.length; i++) {
-                    formData.append('files[]', files[i]);
-                }
-
-                // 发送上传请求
-                const response = await fetch('/upload-multi', {
-                    method: 'POST',
-                    body: formData
-                });
-
-                const result = await response.json();
-
-                if (result.status === 'success') {
-                    // 添加文件到UI和会话
-                    result.files.forEach(file => {
-                        if (file.status === 'success') {
-                            // 添加到当前会话
-                            conversations[currentSessionId].files[file.file_id] = file;
-
-                            // 添加到会话历史
-                            conversations[currentSessionId].messages.push({
-                                role: "user",
-                                content: `上传了${file.file_type}文件: ${file.filename} (ID: ${file.display_id})`,
-                                is_file: true,
-                                file_info: file
-                            });
-                        }
+                    // 发送上传请求
+                    const response = await fetch('/upload-multi', {
+                        method: 'POST',
+                        body: formData
                     });
-                    // 确保文件管理区可见
-                    filesContainer.classList.add('visible');
 
-                    // 保存会话
-                    saveConversations();
+                    const result = await response.json();
 
-                    updateFilesContainer();
+                    if (result.status === 'success') {
+                        // 添加文件到UI和会话
+                        result.files.forEach(file => {
+                            if (file.status === 'success') {
+                                // 添加到当前会话
+                                conversations[currentSessionId].files[file.file_id] = file;
 
-                } else {
-                    throw new Error(result.message || '文件上传失败');
+                                // 添加到会话历史
+                                conversations[currentSessionId].messages.push({
+                                    role: "user",
+                                    content: `上传了${file.file_type}文件: ${file.filename} (ID: ${file.display_id})`,
+                                    is_file: true,
+                                    file_info: file
+                                });
+                            }
+                        });
+                        // 确保文件管理区可见
+                        filesContainer.classList.add('visible');
+
+                        // 保存会话
+                        saveConversations();
+
+                        updateFilesContainer();
+
+                    } else {
+                        throw new Error(result.message || '文件上传失败');
+                    }
+                } catch (error) {
+                    // 显示错误消息
+                    addMessageToChat(`文件上传失败: ${error.message}`, 'assistant');
+                } finally {
+                    sendBtn.innerHTML = originalButtonText;
+                    sendBtn.disabled = false;
+                    event.target.value = ''; // 重置文件选择
                 }
-            } catch (error) {
-                // 显示错误消息
-                addMessageToChat(`文件上传失败: ${error.message}`, 'assistant');
-            } finally {
-                sendBtn.innerHTML = originalButtonText;
-                sendBtn.disabled = false;
-                event.target.value = ''; // 重置文件选择
             }
-        }
 
-        // 移除文件
-        async function removeFile(fileId) {
-            try {
-                // 尝试调用API删除
-                const response = await fetch(`/remove-file/${fileId}?session_id=${currentSessionId}`, {
-                    method: 'DELETE'
-                });
+            // 移除文件
+            async function removeFile(fileId) {
+                try {
+                    // 尝试调用API删除
+                    const response = await fetch(`/remove-file/${fileId}?session_id=${currentSessionId}`, {
+                        method: 'DELETE'
+                    });
 
-                if (!response.ok) {
-                    throw new Error(`API request failed with status ${response.status}`);
-                }
+                    if (!response.ok) {
+                        throw new Error(`API request failed with status ${response.status}`);
+                    }
 
-                const result = await response.json();
+                    const result = await response.json();
 
-                if (result.status === 'success') {
-                    // 从当前会话中移除文件
+                    if (result.status === 'success') {
+                        // 从当前会话中移除文件
+                        if (conversations[currentSessionId] && conversations[currentSessionId].files[fileId]) {
+                            delete conversations[currentSessionId].files[fileId];
+                            saveConversations();
+                            updateFilesContainer();
+                        }
+                    } else {
+                        throw new Error(result.message || 'API returned error');
+                    }
+                } catch (error) {
+                    // 即使API失败也尝试本地删除
                     if (conversations[currentSessionId] && conversations[currentSessionId].files[fileId]) {
+                        const fileInfo = conversations[currentSessionId].files[fileId];
                         delete conversations[currentSessionId].files[fileId];
                         saveConversations();
                         updateFilesContainer();
+
+                        // 显示成功消息
+                        addMessageToChat(`✅ 已本地移除文件: ${fileInfo.display_id}`, 'assistant');
+                    } else {
+                        addMessageToChat(`❌ 文件移除失败: 文件不存在`, 'assistant');
                     }
-                } else {
-                    throw new Error(result.message || 'API returned error');
-                }
-            } catch (error) {
-                // 即使API失败也尝试本地删除
-                if (conversations[currentSessionId] && conversations[currentSessionId].files[fileId]) {
-                    const fileInfo = conversations[currentSessionId].files[fileId];
-                    delete conversations[currentSessionId].files[fileId];
-                    saveConversations();
-                    updateFilesContainer();
-
-                    // 显示成功消息
-                    addMessageToChat(`✅ 已本地移除文件: ${fileInfo.display_id}`, 'assistant');
-                } else {
-                    addMessageToChat(`❌ 文件移除失败: 文件不存在`, 'assistant');
                 }
             }
-        }
 
-        // 添加消息到聊天界面
-        function addMessageToChat(message, sender) {
-            const messageElement = document.createElement('div');
-            messageElement.className = `message ${sender}-message`;
+            // 添加消息到聊天界面
+            function addMessageToChat(message, sender) {
+                const messageElement = document.createElement('div');
+                messageElement.className = `message ${sender}-message`;
 
-            if (sender === 'assistant') {
-                messageElement.innerHTML = marked.parse(message);
-            } else {
-                messageElement.textContent = message;
-            }
+                if (sender === 'assistant') {
+                    messageElement.innerHTML = marked.parse(message);
+                } else {
+                    messageElement.textContent = message;
+                }
 
-            chatContainer.appendChild(messageElement);
-            // 滚动到底部
-            chatContainer.scrollTop = chatContainer.scrollHeight;
-        }
-
-        // 添加消息到会话数据
-        function addToConversation(content, role) {
-            const conversation = conversations[currentSessionId];
-            if (!conversation) return;
-
-            conversation.messages.push({
-                role: role,
-                content: content,
-                is_file: false
-            });
-
-            // 更新会话标题（使用第一条用户消息）
-            if (role === 'user' && conversation.title === '新会话') {
-                conversation.title = content.substring(0, 30) + (content.length > 30 ? '...' : '');
-            }
-
-            // 保存会话
-            saveConversations();
-            renderConversationsList();
-        }
-
-        // 发送消息函数
-        async function sendMessage() {
-            const message = messageInput.value.trim();
-            if (!message || isProcessing) return;
-
-            // 添加用户消息到聊天界面和会话数据
-            addMessageToChat(message, 'user');
-            addToConversation(message, 'user');
-
-            messageInput.value = '';
-            messageInput.focus();
-
-            try {
-                isProcessing = true;
-                updateSendButtonState(); // 更新按钮为停止状态
-
-                // 显示正在输入指示器
-                typingIndicator.style.display = 'flex';
+                chatContainer.appendChild(messageElement);
+                // 滚动到底部
                 chatContainer.scrollTop = chatContainer.scrollHeight;
+            }
 
-                // 创建助手消息占位符
-                const assistantMessageElement = document.createElement('div');
-                assistantMessageElement.className = 'message assistant-message';
-                assistantMessageElement.id = 'assistant-typing';
-                assistantMessageElement.innerHTML = '<span class="assistant-typing"></span>';
-                chatContainer.appendChild(assistantMessageElement);
+            // 添加消息到会话数据
+            function addToConversation(content, role) {
+                const conversation = conversations[currentSessionId];
+                if (!conversation) return;
 
-                // 准备API请求
-                currentAbortController = new AbortController();
-
-                // 获取引用的文件ID
-                const fileRefs = Object.values(conversations[currentSessionId].files)
-                    .filter(file => message.includes(file.display_id))
-                    .map(file => file.file_id);
-
-                // 获取当前设置
-                const settings = conversations[currentSessionId].settings;
-
-                // 发送请求
-                const response = await fetch('/chat', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        session_id: currentSessionId,
-                        message: message,
-                        model: settings.model,
-                        system_prompt: settings.systemPrompt,
-                        max_tokens: settings.maxTokens,
-                        file_references: fileRefs
-                    }),
-                    signal: currentAbortController.signal
+                conversation.messages.push({
+                    role: role,
+                    content: content,
+                    is_file: false
                 });
 
-                if (!response.ok) {
-                    throw new Error(`请求失败: ${response.status} ${response.statusText}`);
+                // 更新会话标题（使用第一条用户消息）
+                if (role === 'user' && conversation.title === '新会话') {
+                    conversation.title = content.substring(0, 30) + (content.length > 30 ? '...' : '');
                 }
 
-                // 处理流式响应
-                const reader = response.body.getReader();
-                const decoder = new TextDecoder('utf-8');
-                let buffer = '';
-                let markdownBuffer = '';
+                // 保存会话
+                saveConversations();
+                renderConversationsList();
+            }
 
-                while (true) {
-                    const { value, done } = await reader.read();
-                    if (done) break;
+            // 发送消息函数
+            async function sendMessage() {
+                const message = messageInput.value.trim();
+                if (!message || isProcessing) return;
 
-                    buffer += decoder.decode(value, { stream: true });
+                // 添加用户消息到聊天界面和会话数据
+                addMessageToChat(message, 'user');
+                addToConversation(message, 'user');
 
-                    let lines = buffer.split('\n\n');
-                    buffer = lines.pop() || '';
+                messageInput.value = '';
+                messageInput.focus();
 
-                    for (const line of lines) {
-                        if (!line.startsWith('data: ')) continue;
+                try {
+                    isProcessing = true;
+                    updateSendButtonState(); // 更新按钮为停止状态
 
-                        const eventData = line.substring(6).trim();
-                        if (!eventData) continue;
+                    // 显示正在输入指示器
+                    typingIndicator.style.display = 'flex';
+                    chatContainer.scrollTop = chatContainer.scrollHeight;
 
-                        try {
-                            const data = JSON.parse(eventData);
+                    // 创建助手消息占位符
+                    const assistantMessageElement = document.createElement('div');
+                    assistantMessageElement.className = 'message assistant-message';
+                    assistantMessageElement.id = 'assistant-typing';
+                    assistantMessageElement.innerHTML = '<span class="assistant-typing"></span>';
+                    chatContainer.appendChild(assistantMessageElement);
 
-                            if (data.char) {
-                                markdownBuffer += data.char;
-                                assistantMessageElement.innerHTML = marked.parse(markdownBuffer) + '<span class="assistant-typing"></span>';
-                                chatContainer.scrollTop = chatContainer.scrollHeight;
+                    // 准备API请求
+                    currentAbortController = new AbortController();
+
+                    // 获取引用的文件ID
+                    const fileRefs = Object.values(conversations[currentSessionId].files)
+                        .filter(file => message.includes(file.display_id))
+                        .map(file => file.file_id);
+
+                    // 获取当前设置
+                    const settings = conversations[currentSessionId].settings;
+
+                    // 发送请求
+                    const response = await fetch('/chat', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            session_id: currentSessionId,
+                            message: message,
+                            model: settings.model,
+                            system_prompt: settings.systemPrompt,
+                            max_tokens: settings.maxTokens,
+                            file_references: fileRefs
+                        }),
+                        signal: currentAbortController.signal
+                    });
+
+                    if (!response.ok) {
+                        throw new Error(`请求失败: ${response.status} ${response.statusText}`);
+                    }
+
+                    // 处理流式响应
+                    const reader = response.body.getReader();
+                    const decoder = new TextDecoder('utf-8');
+                    let buffer = '';
+                    let markdownBuffer = '';
+
+                    while (true) {
+                        const { value, done } = await reader.read();
+                        if (done) break;
+
+                        buffer += decoder.decode(value, { stream: true });
+
+                        let lines = buffer.split('\n\n');
+                        buffer = lines.pop() || '';
+
+                        for (const line of lines) {
+                            if (!line.startsWith('data: ')) continue;
+
+                            const eventData = line.substring(6).trim();
+                            if (!eventData) continue;
+
+                            try {
+                                const data = JSON.parse(eventData);
+
+                                if (data.char) {
+                                    markdownBuffer += data.char;
+                                    assistantMessageElement.innerHTML = marked.parse(markdownBuffer) + '<span class="assistant-typing"></span>';
+                                    chatContainer.scrollTop = chatContainer.scrollHeight;
+                                }
+
+                                if (data.done) {
+                                    assistantMessageElement.innerHTML = marked.parse(markdownBuffer);
+                                    typingIndicator.style.display = 'none';
+                                    isProcessing = false;
+                                    updateSendButtonState(); // 恢复为发送状态
+                                    assistantMessageElement.id = '';
+
+                                    // 添加助手回复到会话数据
+                                    addToConversation(markdownBuffer, 'assistant');
+                                }
+
+                                if (data.error) {
+                                    assistantMessageElement.innerHTML = marked.parse(`⚠️ ${data.error}`);
+                                    typingIndicator.style.display = 'none';
+                                    isProcessing = false;
+                                    updateSendButtonState(); // 恢复为发送状态
+                                }
+                            } catch (e) {
+                                console.error('解析错误:', e);
                             }
-
-                            if (data.done) {
-                                assistantMessageElement.innerHTML = marked.parse(markdownBuffer);
-                                typingIndicator.style.display = 'none';
-                                isProcessing = false;
-                                updateSendButtonState(); // 恢复为发送状态
-                                assistantMessageElement.id = '';
-
-                                // 添加助手回复到会话数据
-                                addToConversation(markdownBuffer, 'assistant');
-                            }
-
-                            if (data.error) {
-                                assistantMessageElement.innerHTML = marked.parse(`⚠️ ${data.error}`);
-                                typingIndicator.style.display = 'none';
-                                isProcessing = false;
-                                updateSendButtonState(); // 恢复为发送状态
-                            }
-                        } catch (e) {
-                            console.error('解析错误:', e);
                         }
                     }
-                }
-            } catch (error) {
-                if (error.name === 'AbortError') {
-                    const errorElement = document.getElementById('assistant-typing');
-                    if (errorElement) {
-                        errorElement.innerHTML = marked.parse('🚫 输出已停止');
-                        errorElement.id = '';
-                        addToConversation('🚫 输出已停止', 'assistant');
-                    }
-                } else {
-                    console.error('请求错误:', error);
-                    const errorElement = document.getElementById('assistant-typing');
-                    if (errorElement) {
-                        errorElement.innerHTML = marked.parse(`⚠️ 请求失败: ${error.message}`);
-                        errorElement.id = '';
+                } catch (error) {
+                    if (error.name === 'AbortError') {
+                        const errorElement = document.getElementById('assistant-typing');
+                        if (errorElement) {
+                            errorElement.innerHTML = marked.parse('🚫 输出已停止');
+                            errorElement.id = '';
+                            addToConversation('🚫 输出已停止', 'assistant');
+                        }
                     } else {
-                        addMessageToChat(`⚠️ 请求失败: ${error.message}`, 'assistant');
+                        console.error('请求错误:', error);
+                        const errorElement = document.getElementById('assistant-typing');
+                        if (errorElement) {
+                            errorElement.innerHTML = marked.parse(`⚠️ 请求失败: ${error.message}`);
+                            errorElement.id = '';
+                        } else {
+                            addMessageToChat(`⚠️ 请求失败: ${error.message}`, 'assistant');
+                        }
                     }
+
+                    typingIndicator.style.display = 'none';
+                    isProcessing = false;
+                    updateSendButtonState(); // 确保恢复为发送状态
                 }
-
-                typingIndicator.style.display = 'none';
-                isProcessing = false;
-                updateSendButtonState(); // 确保恢复为发送状态
             }
-        }
 
-        // 事件监听
-        sendBtn.addEventListener('click', function () {
-            if (isProcessing) {
-                // 当前正在处理，点击即停止
-                if (currentAbortController) {
-                    currentAbortController.abort();
+            // 事件监听
+            sendBtn.addEventListener('click', function () {
+                if (isProcessing) {
+                    // 当前正在处理，点击即停止
+                    if (currentAbortController) {
+                        currentAbortController.abort();
+                    }
+                    isProcessing = false;
+                    updateSendButtonState();
+                    typingIndicator.style.display = 'none';
+                } else {
+                    sendMessage();
                 }
-                isProcessing = false;
-                updateSendButtonState();
-                typingIndicator.style.display = 'none';
-            } else {
-                sendMessage();
-            }
-        });
+            });
 
-        messageInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter' && !isProcessing) {
-                sendMessage();
-            }
-        });
+            messageInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter' && !isProcessing) {
+                    sendMessage();
+                }
+            });
 
-        newChatBtn.addEventListener('click', createNewConversation);
+            newChatBtn.addEventListener('click', createNewConversation);
 
-        // 文件上传事件
-        fileUpload.addEventListener('change', handleMultiFileUpload);
+            // 文件上传事件
+            fileUpload.addEventListener('change', handleMultiFileUpload);
 
-        // 初始化应用
-        window.addEventListener('load', () => {
-            initConversations();
-            messageInput.focus();
-        });
-    </script>
+            // 初始化应用
+            window.addEventListener('load', () => {
+                initConversations();
+                messageInput.focus();
+            });
+        </script>
 </body>
 
 </html>

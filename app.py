@@ -43,7 +43,9 @@ SUPPORTED_MODELS = {
     "DeepSeek-V3-Fast-web": "DeepSeek-V3-Fast:1xh4CuJsBMrlAvdLBAZYfC",
     "DeepSeek-R1-web": "DeepSeek-R1:T0MH1jOlz0LKniEZwSL57",
     "DeepSeek-V3.1":"DeepSeek-V3.1",
-    "DeepSeek-V3.1-web": "DeepSeek-V3.1:3AQ7K15fkmmCnClUfQ4RLn"
+    "DeepSeek-V3.1-web": "DeepSeek-V3.1:3AQ7K15fkmmCnClUfQ4RLn",
+    "Kimi-K2": "Kimi-K2",
+    "GLM-4.5": "GLM-4.5"
 }
 
 # 支持的文件类型
