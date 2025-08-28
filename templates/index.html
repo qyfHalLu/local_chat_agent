@@ -1007,14 +1007,12 @@
                 <div class="setting-item">
                     <label for="model-select">模型选择</label>
                     <select id="model-select">
-                        <option value="DeepSeek-V3-Fast">DeepSeek V3 Fast</option>
-                        <option value="DeepSeek-V3.1">DeepSeek V3.1</option>
-                        <option value="DeepSeek-R1-0528">DeepSeek R1 0528</option>
+                        <option value="DeepSeek-V3.1-Fast">DeepSeek V3.1</option>
+                        <option value="DeepSeek-R1-0528">DeepSeek R1</option>
                         <option value="Kimi-K2">Kimi-K2</option>
                         <option value="GLM-4.5">GLM-4.5</option>
-                        <option value="DeepSeek-V3-Fast:1xh4CuJsBMrlAvdLBAZYfC">DeepSeek V3 Fast（联网）</option>
-                        <option value="DeepSeek-V3.1:3AQ7K15fkmmCnClUfQ4RLn">DeepSeek V3.1（联网）</option>
-                        <option value="DeepSeek-R1:T0MH1jOlz0LKniEZwSL57">DeepSeek R1 0528（联网）</option>
+                        <option value="DeepSeek-V3.1-Fast:1M9zOz2IL7ONncn3YaXPaM">DeepSeek V3.1（联网）</option>
+                        <option value="DeepSeek-R1:T0MH1jOlz0LKniEZwSL57">DeepSeek R1（联网）</option>
                     </select>
                 </div>
 
@@ -1027,9 +1025,9 @@
                 <!-- Max Tokens设置 -->
                 <div class="setting-item">
                     <label for="max-tokens">最大长度 (Max Tokens)</label>
-                    <input type="range" id="max-tokens" min="256" max="16384" value="1024">
+                    <input type="range" id="max-tokens" min="256" max="16384" value="2048">
                     <div class="token-info">
-                        <span id="token-value">1024</span> tokens
+                        <span id="token-value">2048</span> tokens
                         <span class="token-hint">(最大16384)</span>
                     </div>
                 </div>
@@ -1155,9 +1153,9 @@
 
             // 默认设置值
             const DEFAULT_SETTINGS = {
-                model: "DeepSeek-V3-Fast",
+                model: "DeepSeek-V3.1-Fast",
                 systemPrompt: "",
-                maxTokens: 1024
+                maxTokens: 16384
             };
 
             // 初始化会话历史

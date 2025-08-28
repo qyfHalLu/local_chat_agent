@@ -38,12 +38,10 @@ IMAGE_OCR_EASYLLM_ID = os.getenv("IMAGE_OCR_EASYLLM_ID")
 
 # 支持的模型列表
 SUPPORTED_MODELS = {
-    "DeepSeek-V3-Fast": "DeepSeek-V3-Fast",
+    "DeepSeek-V3.1-Fast":"DeepSeek-V3.1-Fast",
+    "DeepSeek-V3.1-Fast-web": "DeepSeek-V3.1-Fast:1M9zOz2IL7ONncn3YaXPaM",
     "DeepSeek-R1": "DeepSeek-R1-0528",
-    "DeepSeek-V3-Fast-web": "DeepSeek-V3-Fast:1xh4CuJsBMrlAvdLBAZYfC",
     "DeepSeek-R1-web": "DeepSeek-R1:T0MH1jOlz0LKniEZwSL57",
-    "DeepSeek-V3.1":"DeepSeek-V3.1",
-    "DeepSeek-V3.1-web": "DeepSeek-V3.1:3AQ7K15fkmmCnClUfQ4RLn",
     "Kimi-K2": "Kimi-K2",
     "GLM-4.5": "GLM-4.5"
 }
@@ -57,9 +55,9 @@ conversations = {}
 
 # 默认设置值
 DEFAULT_SETTINGS = {
-    "model": SUPPORTED_MODELS["DeepSeek-V3-Fast"],
-    "system_prompt": "你是专属智能助手，负责回答用户的任何问题，分析用户提供的文件和图片内容。",
-    "max_tokens": 16384
+    "model": SUPPORTED_MODELS["DeepSeek-V3.1-Fast"],
+    "system_prompt": "你是专属智能助手，负责以专业又温和的语气回答用户的任何问题，分析用户提供的文件和图片内容。",
+    "max_tokens": 2048
 }
 
 def find_free_port(start_port=5000, end_port=5050):
@@ -542,7 +540,7 @@ def chat():
                     # 逐字发送
                     for char in content:
                         # 添加轻微延迟以模拟打字机效果
-                        time.sleep(0.005)
+                        time.sleep(0.002)
                         yield f"data: {json.dumps({'char': char, 'model': model})}\n\n"
             
             # 整个流式响应完成后，将完整的助手回复添加到消息历史中
